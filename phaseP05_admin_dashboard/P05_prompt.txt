@@ -1,0 +1,1139 @@
+<USER_REQUEST>
+# ANTIGRAVITY IMPLEMENTATION PROMPT
+## ROS Sothat — Phase P05: Secure Admin Dashboard
+
+**Project:** ROS Sothat — Rules of Survival Legacy Private Server  
+**Phase:** P05  
+**Mode:** Audit first → implementation → testing → independent verification  
+**Permission:** P05 implementation is approved. No deployment or original IPA modifications are authorized.
+
+---
+
+# 1. Project locations
+
+Use these existing project directories:
+
+**Backend**
+```text
+D:\ROS-Legacy-Analysis\ros-private-server
+```
+
+**Website**
+```text
+D:\ROS-Legacy-Analysis\ros-website
+```
+
+**P05 reports and evidence**
+```text
+D:\ROS-Legacy-Analysis\phaseP05_admin_dashboard
+```
+
+Existing stack:
+
+- Backend: FastAPI, SQLAlchemy, Pydantic.
+- Frontend: Vue 3, Vite.
+- Authentication: existing email OTP account authentication and bearer JWT.
+- Database: inspect the actual configured database and existing models before making assumptions.
+- Existing player dashboard: P04.
+- Existing admin authentication and RBAC: preserve and reuse.
+
+Do not create a new application or replace the existing architecture.
+
+# 2. Mandatory protection rules
+
+These rules apply to the entire phase.
+
+## Original IPA — strictly protected
+
+Original IPA:
+
+```text
+D:\ROS-Legacy-Analysis\RoS-Legacy-iOS.ipa
+```
+
+Original extracted Mach-O:
+
+```text
+D:\ROS-Legacy-Analysis\extracted\Payload\client.app\client
+```
+
+Original IPA SHA-256:
+
+```text
+D1F638AD49387A0BCA3B5E391799E07FAA12F3DCA7DB32F9FD22F07DB14E8C55
+```
+
+Original Mach-O SHA-256:
+
+```text
+51E63BFEA67E62F8ADF32B0664148576725832761C897216CC526F8814123DD6
+```
+
+**Never:**
+- Modify, patch, sign, re-sign, or repackage the original IPA.
+- Modify the extracted original Mach-O.
+- Modify original game resources or binaries.
+- Create a modified or signed distribution IPA.
+- Change iOS entitlements, provisioning profiles, or certificates.
+- Use reverse-engineering results to justify changing the original files.
+
+At the end, verify both original hashes again.
+
+## Database protection
+
+- Inspect the configured database before doing anything.
+- Never connect to or modify a production database.
+- Never delete, reset, truncate, or overwrite existing player records.
+- Never run migrations against a production database.
+- Use an isolated test database for automated tests.
+- Do not replace existing records with seed data.
+- Do not run destructive test cleanup against a real database.
+- Back up relevant local data before any schema migration.
+- If a migration could risk existing records, stop and report the issue before proceeding.
+
+## Hosting and network protection
+
+- Local development only.
+- Backend must bind to `127.0.0.1`.
+- Frontend must bind to `127.0.0.1`.
+- Do not expose public ports.
+- Do not deploy to Render or any other hosting service.
+- Do not configure public DNS, tunnels, public APIs, or external game-server sockets.
+- Do not send real emails.
+- Do not purchase services or activate paid infrastructure.
+
+## Scope protection
+
+P05 does not include:
+- BaseApp or CellApp implementation.
+- Mercury UDP implementation.
+- Native game-client property synchronization.
+- LoginApp protocol changes.
+- IPA compatibility claims.
+- Game-client modifications.
+- Production deployment.
+
+Keep these as separate future phases requiring approval.
+
+# 3. Phase objective
+
+Build a secure, usable Admin Dashboard that allows authorized administrators to:
+
+1. View dashboard statistics.
+2. Search and inspect player accounts.
+3. Inspect player characters and account status.
+4. Suspend and reactivate accounts, only if the existing backend supports this safely.
+5. Grant diamonds.
+6. Deduct diamonds.
+7. Inspect diamond transaction history.
+8. Manage player inventory through safe grant/removal operations.
+9. Inspect administrator audit logs.
+10. Track which administrator performed each sensitive action.
+
+The interface should be clean, responsive, and consistent with the existing ROS Sothat website.
+
+Do not invent player statistics, balances, inventory items, or online status.
+
+# 4. Mandatory Stage A — Audit before implementation
+
+**Do not edit any files during this stage.**
+
+Inspect the existing code and produce a report first.
+
+## A1. Inspect backend architecture
+
+Review:
+
+- `app/main.py`
+- Authentication and JWT implementation.
+- Existing admin router and RBAC dependencies.
+- Player router.
+- Character models.
+- Account models.
+- Diamond transaction models.
+- Inventory models.
+- Item catalog models.
+- Database session and transaction management.
+- Existing migration system.
+- Existing API schemas.
+- Existing exception handling.
+- Existing test configuration.
+
+Use the actual repository structure. Do not assume the listed filenames all exist.
+
+## A2. Inspect frontend architecture
+
+Review:
+
+- Existing Vue router.
+- Authentication/session handling.
+- Existing route guards.
+- Existing API client.
+- P03 login and registration.
+- P04 dashboard layout.
+- Existing components and styling.
+- Existing test framework.
+
+Identify the safest way to add an admin area without breaking the player dashboard.
+
+## A3. Inspect current authorization
+
+Determine:
+
+- How an administrator is identified.
+- Whether roles are stored in the database or another trusted server-side source.
+- How the backend verifies JWTs.
+- How expired or invalid tokens are handled.
+- Whether admin dependencies already exist.
+- Whether player endpoints can be accessed by another player's account.
+- Whether admin authorization is enforced on the backend or only in the frontend.
+
+**Never trust a role, account ID, or permission supplied by the frontend.**
+
+## A4. Inspect diamond data integrity
+
+Determine:
+
+- Where the current diamond balance is stored.
+- How existing diamond transactions are recorded.
+- Whether transactions are append-only.
+- Whether balance changes and transaction creation happen in one database transaction.
+- Whether concurrent updates can overwrite one another.
+- Whether a transaction has a unique ID or idempotency key.
+- Whether negative balances are currently possible.
+
+Specifically investigate the P04 design:
+
+```text
+characters.diamonds
+diamond_transactions
+```
+
+Confirm whether both are updated atomically.
+
+Do not assume that existing behavior is safe just because tests pass.
+
+## A5. Inspect inventory ownership and data model
+
+Determine:
+
+- How inventory items belong to accounts or characters.
+- Whether items have quantities.
+- Whether duplicate items are allowed.
+- Whether equipped items are represented separately.
+- How item catalog IDs are validated.
+- Whether item removal could affect equipped items or other game data.
+
+Do not invent new inventory semantics.
+
+## A6. Produce the audit report
+
+Create:
+
+```text
+D:\ROS-Legacy-Analysis\phaseP05_admin_dashboard\P05_AUDIT_REPORT.md
+```
+
+Include:
+
+- Existing architecture.
+- Existing admin authorization.
+- Existing player management capabilities.
+- Diamond balance and ledger design.
+- Inventory model.
+- Existing frontend structure.
+- Existing tests and baseline results.
+- Security weaknesses.
+- Missing features.
+- Proposed implementation files.
+- Proposed API endpoints.
+- Proposed migrations, if necessary.
+- Risks and mitigation.
+- Any issue that requires my decision.
+
+After writing the report, continue only with changes clearly within this approved P05 scope. If a change risks existing player data, requires a destructive migration, or requires a new security decision, stop and ask me first.
+
+# 5. Stage B — Secure Admin API
+
+Reuse the existing backend authentication and RBAC architecture.
+
+Do not create a second authentication system.
+
+## B1. Authorization requirements
+
+Every admin endpoint must verify authorization on the backend.
+
+Required behavior:
+
+| Requester | Expected result |
+|---|---|
+| Unauthenticated user | 401 Unauthorized |
+| Expired or invalid JWT | 401 Unauthorized |
+| Normal player | 403 Forbidden |
+| Authorized admin | Allowed, subject to validation |
+
+Requirements:
+
+- Reuse existing server-side admin dependencies.
+- Never rely on frontend route guards as security.
+- Never accept an admin role from request JSON.
+- Never allow players to change their own role.
+- Never expose administrator-only information through public endpoints.
+- Avoid leaking sensitive information in error messages.
+- Validate all request fields on the backend.
+
+Preserve existing authentication behavior.
+
+## B2. Admin dashboard summary API
+
+Implement an endpoint similar to:
+
+```http
+GET /api/v1/admin/dashboard/summary
+```
+
+Only if compatible with the existing API structure.
+
+Return only real information that can be calculated from existing records.
+
+Potential fields:
+
+- Total registered accounts.
+- Total player characters.
+- Active accounts.
+- Suspended accounts, if supported.
+- Total diamonds in player balances.
+- Total inventory records.
+- Recent administrative operations.
+
+Rules:
+
+- Do not invent online-player counts.
+- Do not invent active matches.
+- Do not invent game-server uptime.
+- Do not treat accounts as online without a real presence system.
+- Handle empty databases correctly.
+- Avoid unnecessarily expensive queries.
+
+Clearly distinguish unavailable metrics from actual zero values.
+
+## B3. Player management API
+
+Implement secure endpoints following the existing naming conventions.
+
+Suggested operations:
+
+```http
+GET /api/v1/admin/players
+GET /api/v1/admin/players/{player_id}
+```
+
+Support safe pagination and search.
+
+Possible search fields:
+
+- Account ID.
+- Email, if available.
+- Character name.
+- Other existing identifiers.
+
+Requirements:
+
+- Validate pagination limits.
+- Use parameterized queries or ORM expressions.
+- Avoid exposing passwords, OTPs, password hashes, JWTs, or secrets.
+- Return only fields needed by administrators.
+- Handle missing players with 404.
+- Avoid leaking whether a sensitive account identifier exists to unauthorized users.
+
+If accounts can have multiple characters, make the relationship clear in the API response.
+
+## B4. Suspend and reactivate accounts
+
+Only implement this if the current account model and authentication architecture can support it safely.
+
+Suggested operations:
+
+```http
+POST /api/v1/admin/players/{player_id}/suspend
+POST /api/v1/admin/players/{player_id}/reactivate
+```
+
+Requirements:
+
+- Use a server-side account status field or existing equivalent.
+- Do not delete accounts.
+- Do not delete characters.
+- Do not erase inventory or diamonds.
+- Do not silently reset passwords or sessions.
+- Record the administrator, reason, timestamp, and action.
+- Ensure suspended accounts cannot authenticate or use protected player endpoints, if that is the intended existing account-status behavior.
+- Ensure administrators cannot accidentally suspend themselves if that could lock out the entire system.
+- Prevent duplicate or contradictory status changes.
+
+If the existing authentication system cannot safely enforce suspension, do not add a superficial UI toggle. Report what must be changed first.
+
+# 6. Stage C — Atomic diamond management
+
+This is one of the most important parts of P05.
+
+Administrators must be able to grant or deduct diamonds safely.
+
+## C1. Suggested endpoints
+
+```http
+POST /api/v1/admin/players/{player_id}/diamonds/grant
+POST /api/v1/admin/players/{player_id}/diamonds/deduct
+GET  /api/v1/admin/players/{player_id}/diamonds/history
+```
+
+Adapt the paths if the existing API convention requires it.
+
+## C2. Request validation
+
+A mutation request should contain:
+
+```json
+{
+  "amount": 100,
+  "reason": "Compensation for a reported issue",
+  "idempotency_key": "unique-operation-identifier"
+}
+```
+
+Requirements:
+
+- Amount must be a positive integer.
+- Reject zero.
+- Reject negative input amounts.
+- Set a reasonable maximum operation amount based on the existing game's data model.
+- Reason must be non-empty and length-limited.
+- Reject invalid player IDs.
+- Never accept the resulting balance from the client.
+- Never accept the administrator ID from the client.
+- Administrator identity must come from the authenticated server-side principal.
+- Validate idempotency keys and prevent replayed operations.
+
+## C3. Atomicity
+
+The diamond balance and ledger must be updated in the same database transaction.
+
+Conceptual operation:
+
+```text
+BEGIN TRANSACTION
+
+1. Authenticate administrator.
+2. Verify target player exists.
+3. Lock or safely serialize access to the target character balance.
+4. Validate current balance.
+5. Calculate new balance on the server.
+6. Prevent negative balances.
+7. Update character diamond balance.
+8. Insert immutable diamond transaction record.
+9. Insert administrator audit record.
+10. Commit.
+
+If any step fails:
+ROLLBACK EVERYTHING.
+```
+
+Use a database-appropriate concurrency strategy.
+
+Examples include:
+
+- Row-level locking where supported.
+- Conditional atomic updates.
+- Optimistic version checks.
+- Other appropriate SQLAlchemy/database mechanisms.
+
+Do not assume SQLite locking behavior is identical to PostgreSQL.
+
+## C4. Ledger requirements
+
+Every successful operation must record:
+
+- Unique transaction ID.
+- Target character/player.
+- Operation type: grant or deduction.
+- Amount.
+- Balance before.
+- Balance after.
+- Administrator actor.
+- Reason.
+- Timestamp.
+- Idempotency key or equivalent operation reference.
+
+Never edit or delete previous transaction records to hide an operation.
+
+If a correction is needed, create a new compensating transaction.
+
+## C5. Idempotency
+
+A retry must not grant or deduct diamonds twice.
+
+Requirements:
+
+- Same idempotency key and same operation: return the original operation result.
+- Same key with conflicting request data: reject with a conflict response.
+- Concurrent duplicate requests must not create duplicate transactions.
+- Use a database uniqueness constraint where appropriate.
+- Do not rely only on an in-memory dictionary.
+
+## C6. Balance validation
+
+Test:
+
+- Granting diamonds.
+- Deducting diamonds.
+- Deducting exactly the current balance.
+- Attempting to deduct more than the current balance.
+- Zero amount.
+- Negative amount.
+- Extremely large amount.
+- Missing player.
+- Invalid administrator.
+- Duplicate request.
+- Concurrent requests.
+- Database failure during ledger insertion.
+- Database failure during audit insertion.
+
+If ledger insertion or audit insertion fails, the balance must remain unchanged.
+
+**Never allow a successful balance update without its matching ledger and audit records.**
+
+# 7. Stage D — Inventory management
+
+Implement inventory administration only after verifying the actual inventory model.
+
+## D1. Suggested endpoints
+
+```http
+GET    /api/v1/admin/players/{player_id}/inventory
+POST   /api/v1/admin/players/{player_id}/inventory/grant
+POST   /api/v1/admin/players/{player_id}/inventory/remove
+```
+
+Adapt paths to the existing API architecture.
+
+## D2. Grant operation
+
+Allow administrators to grant an existing valid catalog item.
+
+Validate:
+
+- Player or character exists.
+- Item exists in the catalog.
+- Item is allowed to be granted.
+- Quantity is a positive integer.
+- Quantity does not exceed a reasonable configured limit.
+- The request cannot assign an arbitrary catalog ID that does not exist.
+
+## D3. Removal operation
+
+Allow only safe removal.
+
+Requirements:
+
+- Verify the item belongs to the target player/character.
+- Verify sufficient quantity.
+- Prevent negative quantity.
+- Prevent removing another player's item.
+- Handle equipped items safely.
+- Do not silently destroy an equipped item or corrupt equipment references.
+- Require a reason for administrative removal.
+
+If the current model cannot distinguish these situations safely, implement read-only inventory inspection first and report the missing support.
+
+## D4. Inventory audit
+
+Record:
+
+- Administrator.
+- Target player/character.
+- Catalog item.
+- Quantity.
+- Operation type.
+- Reason.
+- Timestamp.
+- Before and after quantities, where applicable.
+
+Inventory changes and their audit records must be atomic.
+
+Do not create fake catalog items or fictional inventory records.
+
+# 8. Stage E — Administrator audit logs
+
+Create or extend an audit system based on the existing architecture.
+
+Suggested endpoint:
+
+```http
+GET /api/v1/admin/audit-logs
+```
+
+Optional filters:
+
+- Administrator ID.
+- Target player ID.
+- Action type.
+- Date range.
+- Pagination.
+
+Record sensitive actions, including:
+
+- Diamond grants.
+- Diamond deductions.
+- Inventory grants.
+- Inventory removals.
+- Account suspensions.
+- Account reactivations.
+
+Each record should include:
+
+- Audit ID.
+- Actor administrator ID.
+- Action type.
+- Target entity.
+- Timestamp.
+- Reason.
+- Operation reference.
+- Safe metadata describing the change.
+
+Security requirements:
+
+- Audit records must not be editable through ordinary admin APIs.
+- Do not expose audit records to normal players.
+- Do not record passwords, OTP codes, JWTs, secret keys, or other credentials.
+- Do not allow an administrator to erase their own action history through the dashboard.
+- Use append-only behavior wherever practical.
+- Keep audit records separate from the diamond transaction ledger.
+
+If an operation fails, its successful mutation audit entry must not exist. A separate security event for a rejected attempt may be recorded if the existing logging architecture supports it safely.
+
+# 9. Stage F — Admin Dashboard frontend
+
+Create the admin interface inside the existing Vue 3 website.
+
+Suggested route structure:
+
+```text
+/admin
+/admin/players
+/admin/players/:playerId
+/admin/transactions
+/admin/inventory
+/admin/audit-logs
+```
+
+Follow existing project naming conventions where possible.
+
+## F1. Admin route protection
+
+- Reuse the current authentication system.
+- Add frontend route guards for user experience.
+- Obtain authorization from a trusted backend endpoint or existing server-side session data.
+- Do not trust a locally edited role field.
+- Do not show admin navigation to normal players.
+- Direct URL access must still be rejected by the backend.
+- Handle 401 and 403 consistently.
+- Preserve the existing player dashboard.
+
+Do not store administrator credentials or tokens in URLs.
+
+Do not introduce `v-html`, `innerHTML`, or unsafe dynamic HTML rendering.
+
+Keep the existing session-storage limitations documented; do not claim that sessionStorage is immune to XSS.
+
+## F2. Admin overview
+
+Display real API data:
+
+- Total accounts.
+- Active/suspended account counts if supported.
+- Total player characters.
+- Total diamonds.
+- Recent administrative activity.
+
+Show clear empty states and loading/error states.
+
+Never use fake numbers to make the dashboard look complete.
+
+## F3. Player list
+
+Include:
+
+- Search.
+- Pagination.
+- Player ID.
+- Email, if available.
+- Character name.
+- Diamond balance.
+- Account status.
+- Actions.
+
+Do not display sensitive authentication data.
+
+## F4. Player details
+
+Display:
+
+- Account information.
+- Character information.
+- Current diamond balance.
+- Diamond transaction history.
+- Inventory.
+- Account status.
+- Relevant administrative history.
+
+Make it clear when data is missing or unavailable.
+
+## F5. Diamond management interface
+
+Provide separate Grant and Deduct actions.
+
+Before submitting, show:
+
+- Target player.
+- Current balance.
+- Operation type.
+- Amount.
+- Expected resulting balance.
+- Reason.
+
+Require a confirmation step.
+
+After success, refresh the balance and transaction history from the backend.
+
+If the operation fails, show a clear error and do not display a fake success message.
+
+Prevent accidental double-click submissions while a request is in progress.
+
+## F6. Inventory management interface
+
+Provide:
+
+- Inventory list.
+- Item name and catalog ID.
+- Quantity.
+- Item category where supported.
+- Grant action.
+- Remove action.
+
+Show a confirmation dialog for removal.
+
+Require a reason for administrative removal.
+
+Do not display controls for operations the backend does not support safely.
+
+## F7. Audit log interface
+
+Display:
+
+- Date/time.
+- Administrator.
+- Action.
+- Target player.
+- Reason.
+- Amount or item details when relevant.
+- Operation reference.
+
+Provide pagination and filters.
+
+Use a clear empty state.
+
+# 10. Stage G — Database migrations
+
+Only add migrations when the audit proves they are necessary.
+
+Potential changes may include:
+
+- Audit log table.
+- Idempotency key uniqueness.
+- Additional transaction metadata.
+- Account suspension status, if not already supported.
+
+Requirements:
+
+1. Inspect the current schema.
+2. Check migration history.
+3. Preserve every existing player record.
+4. Use backward-compatible changes where possible.
+5. Avoid destructive column changes.
+6. Avoid changing existing IDs.
+7. Test migrations against an isolated database.
+8. Test rollback where safe.
+9. Record migration behavior in the report.
+
+Do not run migrations against production.
+
+Do not change production configuration.
+
+Do not use test fixtures against the real database.
+
+If a schema change risks existing data, stop and ask for approval before implementing it.
+
+# 11. Stage H — Comprehensive automated testing
+
+Tests must verify actual behavior, not merely that endpoints return HTTP 200.
+
+Use the existing testing framework.
+
+## H1. Authorization tests
+
+- Unauthenticated admin request returns 401.
+- Invalid JWT returns 401.
+- Expired JWT returns 401.
+- Normal player calling admin endpoint returns 403.
+- Admin can access authorized endpoints.
+- Player cannot grant diamonds.
+- Player cannot deduct diamonds.
+- Player cannot modify inventory.
+- Player cannot view admin audit logs.
+- Direct API calls are protected even if frontend route guards are bypassed.
+
+## H2. Player isolation tests
+
+Create at least two test players.
+
+Verify:
+
+- Admin can inspect the intended player.
+- Player A cannot read Player B's private information.
+- Player A cannot change Player B's inventory.
+- Player A cannot change Player B's diamond balance.
+- Admin actions affect only the intended player.
+- Multiple characters belonging to one account are handled correctly.
+
+## H3. Diamond tests
+
+Test:
+
+- Valid grant.
+- Valid deduction.
+- Exact-balance deduction.
+- Insufficient balance rejection.
+- Invalid amount.
+- Missing reason.
+- Invalid player.
+- Duplicate idempotency key.
+- Conflicting idempotency request.
+- Concurrent grant requests.
+- Concurrent deduction requests.
+- Balance and ledger consistency.
+- Audit record creation.
+- Rollback after ledger insertion failure.
+- Rollback after audit insertion failure.
+- No negative balance under concurrent operations.
+
+Verify the resulting balance against the sum of valid ledger transactions where the existing ledger model permits that calculation.
+
+## H4. Inventory tests
+
+Test:
+
+- Grant existing catalog item.
+- Reject nonexistent catalog item.
+- Reject invalid quantity.
+- Reject negative quantity.
+- Remove sufficient quantity.
+- Reject insufficient quantity.
+- Reject removal from another player.
+- Handle equipped items safely.
+- Verify inventory audit creation.
+- Verify rollback when audit insertion fails.
+
+## H5. Account management tests
+
+If suspension is implemented:
+
+- Suspend an active account.
+- Reject duplicate suspension.
+- Reactivate a suspended account.
+- Reject invalid transitions.
+- Verify suspended account authentication is blocked.
+- Verify existing player data remains intact.
+- Verify administrator action is audited.
+- Prevent accidental administrator lockout.
+
+## H6. Frontend tests
+
+Test:
+
+- Admin navigation.
+- Admin route access.
+- Player route restrictions.
+- Loading states.
+- Empty states.
+- API errors.
+- Player search.
+- Pagination.
+- Grant confirmation.
+- Deduction confirmation.
+- Duplicate-click protection.
+- Inventory grant/removal confirmation.
+- Audit log display.
+- Responsive layouts.
+
+Test multiple viewport sizes.
+
+If Playwright is already installed, use it for actual browser testing.
+
+If it is not installed, do not claim browser testing. Report component/jsdom testing separately from real browser testing.
+
+## H7. Regression testing
+
+Run all existing tests.
+
+Previously reported baselines:
+
+- P02.1 backend: 154 passed, 1 skipped.
+- P03.1 backend: 159 passed, 1 skipped.
+- P04 backend: 162 passed, 1 skipped.
+- P04 frontend: 34 passed.
+- P04 component viewport tests: 19 passed.
+- P04 backend dashboard API tests: 3 passed.
+- P04 website integration tests: 5 passed.
+
+These are historical reported results, not guaranteed current results. Run the actual current test suite and report the real outcome.
+
+P05 must not break:
+
+- OTP registration.
+- OTP login.
+- Player authentication.
+- Player dashboard.
+- Profile.
+- Wallet.
+- Diamond history.
+- Inventory.
+- Statistics.
+- Settings.
+- Existing admin authentication and RBAC.
+
+# 12. Stage I — Security review
+
+After implementation, perform a separate security review.
+
+Inspect for:
+
+- Missing authorization dependencies.
+- IDOR vulnerabilities.
+- Trusting client-supplied admin IDs.
+- Trusting client-supplied roles.
+- SQL injection.
+- Unsafe ORM queries.
+- Mass assignment.
+- Negative balance vulnerabilities.
+- Duplicate transaction vulnerabilities.
+- Race conditions.
+- Non-atomic database operations.
+- Missing audit records.
+- Editable historical transactions.
+- Sensitive information in logs.
+- JWT leakage.
+- Unsafe frontend rendering.
+- Unprotected administrative routes.
+- Excessive API response data.
+
+Try to bypass frontend restrictions using direct API requests.
+
+Do not declare security PASS simply because the dashboard is hidden from players.
+
+# 13. Stage J — Local startup and manual verification
+
+Keep all services local.
+
+Backend:
+
+```powershell
+cd D:\ROS-Legacy-Analysis\ros-private-server
+uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
+```
+
+Frontend:
+
+```powershell
+cd D:\ROS-Legacy-Analysis\ros-website
+npm.cmd run dev -- --host 127.0.0.1
+```
+
+Expected frontend URL:
+
+```text
+http://127.0.0.1:5173
+```
+
+Backend must remain on:
+
+```text
+http://127.0.0.1:8000
+```
+
+Do not use `0.0.0.0`.
+
+Do not expose the app through a tunnel or public hosting.
+
+Verify:
+
+1. Normal player can log in.
+2. Normal player can still use P04 dashboard.
+3. Normal player cannot access admin pages or admin APIs.
+4. Authorized administrator can log in.
+5. Administrator can view player records.
+6. Administrator can grant diamonds.
+7. Administrator can deduct diamonds.
+8. Diamond balance and ledger remain consistent.
+9. Inventory changes work safely.
+10. Audit records show the correct administrator and operation.
+11. Failed operations do not corrupt data.
+12. No original IPA files changed.
+
+Use isolated test accounts and test data for mutation testing.
+
+Do not test grants or deductions against actual player accounts unless explicitly authorized.
+
+# 14. Required P05 deliverables
+
+Create the following report files:
+
+```text
+D:\ROS-Legacy-Analysis\phaseP05_admin_dashboard\
+```
+
+Required:
+
+```text
+P05_AUDIT_REPORT.md
+P05_IMPLEMENTATION_REPORT.md
+P05_API_DOCUMENTATION.md
+P05_DATABASE_MIGRATION_REPORT.md
+P05_SECURITY_REVIEW.md
+P05_TEST_REPORT.md
+P05_MANUAL_TEST_GUIDE.md
+P05_FINAL_SUMMARY.md
+```
+
+Include screenshots of the local dashboard if possible.
+
+The implementation report must identify:
+
+- Files created.
+- Files modified.
+- Database migrations added.
+- API endpoints added.
+- Authorization behavior.
+- Diamond transaction design.
+- Inventory transaction design.
+- Audit design.
+- Tests executed.
+- Test results.
+- Known limitations.
+- Outstanding risks.
+
+The test report must distinguish:
+
+- Unit tests.
+- API integration tests.
+- Database transaction tests.
+- Frontend component tests.
+- Real browser tests.
+- Manual tests.
+
+Do not combine these into one misleading test count.
+
+# 15. Final verification checklist
+
+Before declaring P05 complete, verify:
+
+- [ ] Existing P03/P04 features still work.
+- [ ] Backend enforces admin-only authorization.
+- [ ] Normal players cannot call admin APIs.
+- [ ] Player data isolation is tested.
+- [ ] Diamond grants are atomic.
+- [ ] Diamond deductions are atomic.
+- [ ] Negative balances are impossible.
+- [ ] Duplicate operations cannot execute twice.
+- [ ] Diamond ledger remains consistent.
+- [ ] Inventory operations are validated and safe.
+- [ ] Administrative actions create audit records.
+- [ ] Audit history cannot be edited through ordinary APIs.
+- [ ] Sensitive authentication data is not exposed.
+- [ ] Database migrations preserve existing records.
+- [ ] All tests and regressions have been executed.
+- [ ] Services bind only to localhost.
+- [ ] No public deployment occurred.
+- [ ] No real emails were sent.
+- [ ] No production database was modified.
+- [ ] Original IPA SHA-256 is unchanged.
+- [ ] Original Mach-O SHA-256 is unchanged.
+
+# 16. Important distinction — database economy vs actual game economy
+
+ROS Sothat has two separate layers:
+
+**Layer 1 — Private server database**
+
+```text
+Admin Dashboard
+      |
+      v
+Secure Admin API
+      |
+      v
+Database
+      |
+      +-- Character diamond balance
+      +-- Diamond transaction ledger
+      +-- Inventory
+      +-- Administrator audit logs
+```
+
+**Layer 2 — Original iOS game client**
+
+```text
+Private Game Server
+      |
+      v
+BaseApp / Mercury protocol
+      |
+      v
+Original iOS game client
+      |
+      v
+Visible in-game diamonds and inventory
+```
+
+P05 implements and secures Layer 1.
+
+It does not complete Layer 2.
+
+Therefore:
+
+- Do not claim diamonds appear in the original game client.
+- Do not claim inventory changes synchronize with the game.
+- Do not claim original-client compatibility.
+- Document the future integration requirements.
+- Preserve the original IPA.
+
+# 17. Stop condition and approval gate
+
+When P05 implementation, testing, and security review are finished:
+
+1. Stop making changes.
+2. Do not begin P06.
+3. Do not implement BaseApp or CellApp.
+4. Do not implement Mercury synchronization.
+5. Do not deploy.
+6. Do not sign or modify the IPA.
+7. Present the final summary and all report paths.
+8. Clearly list anything incomplete or unverified.
+9. Wait for my explicit approval before starting another phase.
+
+**Final instruction:** Work carefully and incrementally. Preserve existing data and functionality. If a security issue, migration risk, or architectural limitation prevents safe implementation, stop and report it instead of silently introducing a risky workaround.
+
+The objective is a secure, reliable private-server administration system—not simply an attractive dashboard.
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-11-13T22:36:52+07:00.
+</ADDITIONAL_METADATA>

@@ -1,0 +1,103 @@
+{
+  "golden_vectors": [
+    {
+      "id": "GV01_ONE_BLOCK",
+      "case": "One-block encryption",
+      "key_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f3031323334353637",
+      "plaintext_hex": "4131423243334434",
+      "ciphertext_hex": "59d5fdd190a33e11",
+      "decrypted_hex": "4131423243334434",
+      "reference_implementation": "IndependentBigWorldBlowfish + OpenSSL C API Oracle",
+      "verification_method": "Bitwise oracle cross-check (C libcrypto == Python Independent reference)"
+    },
+    {
+      "id": "GV02_TWO_BLOCK",
+      "case": "Two-block encryption",
+      "key_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f3031323334353637",
+      "plaintext_hex": "416c7068614f6e654265746154776f38",
+      "ciphertext_hex": "ca2af83d20184182f640245ab90e3915",
+      "decrypted_hex": "416c7068614f6e654265746154776f38",
+      "reference_implementation": "IndependentBigWorldBlowfish + OpenSSL C API Oracle",
+      "verification_method": "Bitwise oracle cross-check"
+    },
+    {
+      "id": "GV03_THREE_BLOCK",
+      "case": "Three-block encryption",
+      "key_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f3031323334353637",
+      "plaintext_hex": "426c6f636b303031426c6f636b303032426c6f636b303033",
+      "ciphertext_hex": "4ebff35a1db3cc7d1822bf4a187265daf07e36c3887b4a2b",
+      "decrypted_hex": "426c6f636b303031426c6f636b303032426c6f636b303033",
+      "reference_implementation": "IndependentBigWorldBlowfish + OpenSSL C API Oracle",
+      "verification_method": "Bitwise oracle cross-check"
+    },
+    {
+      "id": "GV04_MERCURY_ADDRESS_127_0_0_1",
+      "case": "24-byte Mercury address representation (127.0.0.1:20014)",
+      "key_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f3031323334353637",
+      "plaintext_hex": "7f0000014e2e000000000000000000000000000000000000",
+      "ciphertext_hex": "c117196c41ac52ddc117196c41ac52dd5df23f8894102401",
+      "decrypted_hex": "7f0000014e2e000000000000000000000000000000000000",
+      "reference_implementation": "IndependentBigWorldBlowfish + OpenSSL C API Oracle",
+      "verification_method": "Bitwise oracle cross-check"
+    },
+    {
+      "id": "GV05_DIFFERENT_IP_PORT",
+      "case": "Different IP and port values (192.168.1.100:20013)",
+      "key_hex": "030a11181f262d343b424950575e656c737a81888f969da4abb2b9c0c7ced5dce3eaf1f8ff060d141b222930373e454c535a61686f767d84",
+      "plaintext_hex": "c0a801644e2d000000000000000000000000000000000000",
+      "ciphertext_hex": "a4e6a3ebbde9c263a4e6a3ebbde9c26377b36635c0884a18",
+      "decrypted_hex": "c0a801644e2d000000000000000000000000000000000000",
+      "reference_implementation": "IndependentBigWorldBlowfish + OpenSSL C API Oracle",
+      "verification_method": "Bitwise oracle cross-check"
+    },
+    {
+      "id": "GV06_ZERO_PADDED_ADDRESS_PROPERTY",
+      "case": "Zero-filled address padding identity (C1 == C0 when P1 == 0)",
+      "key_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f3031323334353637",
+      "plaintext_hex": "7f0000014e2e000000000000000000000000000000000000",
+      "ciphertext_hex": "c117196c41ac52ddc117196c41ac52dd5df23f8894102401",
+      "decrypted_hex": "7f0000014e2e000000000000000000000000000000000000",
+      "block0_ciphertext_hex": "c117196c41ac52dd",
+      "block1_ciphertext_hex": "c117196c41ac52dd",
+      "block2_ciphertext_hex": "5df23f8894102401",
+      "reference_implementation": "IndependentBigWorldBlowfish + OpenSSL C API Oracle",
+      "verification_method": "Mathematical theorem proof: C1 = E_K(0 ^ P0) = E_K(P0) = C0"
+    },
+    {
+      "id": "GV07_INVALID_KEY_LENGTH",
+      "case": "Invalid key length rejection",
+      "invalid_key_hex": "01010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101",
+      "expected_error": "Key length must be 56",
+      "reference_implementation": "IndependentBigWorldBlowfish",
+      "verification_method": "Exception assertion"
+    },
+    {
+      "id": "GV08_INVALID_PLAINTEXT_LENGTH",
+      "case": "Invalid plaintext unaligned length rejection",
+      "key_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f3031323334353637",
+      "invalid_plaintext_hex": "4141414141414141414141414141414141414141414141",
+      "expected_error": "Plaintext length (23) not multiple of 8",
+      "reference_implementation": "IndependentBigWorldBlowfish",
+      "verification_method": "Exception assertion"
+    },
+    {
+      "id": "GV09_INVALID_CIPHERTEXT_LENGTH",
+      "case": "Invalid ciphertext unaligned length rejection",
+      "key_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f3031323334353637",
+      "invalid_ciphertext_hex": "999999999999999999999999999999",
+      "expected_error": "Ciphertext length (15) not multiple of 8",
+      "reference_implementation": "IndependentBigWorldBlowfish",
+      "verification_method": "Exception assertion"
+    },
+    {
+      "id": "GV10_INTEROPERABILITY",
+      "case": "Encrypt/decrypt interoperability between independent implementations",
+      "key_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f3031323334353637",
+      "plaintext_hex": "426c6f636b303031426c6f636b303032426c6f636b303033",
+      "ciphertext_hex": "4ebff35a1db3cc7d1822bf4a187265daf07e36c3887b4a2b",
+      "decrypted_hex": "426c6f636b303031426c6f636b303032426c6f636b303033",
+      "reference_implementation": "IndependentBigWorldBlowfish <-> OpenSSL C API Oracle",
+      "verification_method": "Bidirectional cross-implementation interoperability assertion"
+    }
+  ]
+}

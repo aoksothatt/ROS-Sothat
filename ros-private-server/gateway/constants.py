@@ -1,0 +1,17 @@
+"""
+Constants for ROS Sothat Gateway and Handshake subsystems.
+"""
+
+# LoginApp Response Status Codes
+LOGON_STATUS_OK: int = 0
+LOGON_STATUS_FAILED: int = 1
+LOGON_STATUS_BANNED: int = 2
+LOGON_STATUS_VERSION_MISMATCH: int = 3
+LOGON_STATUS_ALREADY_ONLINE: int = 4
+
+# BaseApp / Client Session States
+SESSION_STATE_AUTHENTICATED: str = "AUTHENTICATED"
+SESSION_STATE_IN_LOBBY: str = "IN_LOBBY"
+SESSION_STATE_IN_ROOM: str = "IN_ROOM"
+SESSION_STATE_IN_MATCH: str = "IN_MATCH"
+SESSION_STATE_DISCONNECTED: str = "DISCONNECTED"

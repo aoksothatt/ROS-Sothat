@@ -1,0 +1,70 @@
+# =============================================================================
+# ROS Sothat — Git Ignore Rules
+# =============================================================================
+
+# --- Protected & Large Original Game Assets ---
+# Note: Original iOS IPA (846MB) exceeds GitHub 100MB limit and is proprietary.
+# Extracted client binaries and assets are also preserved locally only.
+RoS-Legacy-iOS.ipa
+extracted/
+
+# --- Node / Frontend (ros-website) ---
+node_modules/
+ros-website/node_modules/
+dist/
+ros-website/dist/
+dist-ssr/
+*.local
+.vite/
+
+# --- Python / Backend (ros-private-server) ---
+__pycache__/
+*/__pycache__/
+**__pycache__**
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+build/
+develop-eggs/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# --- Testing & Coverage ---
+.pytest_cache/
+ros-private-server/.pytest_cache/
+.coverage
+htmlcov/
+*.log
+
+# --- Local Databases & Sensitive Environments ---
+*.db
+*.sqlite
+*.sqlite3
+ros_private.db
+ros-private-server/ros_private.db
+.env
+ros-website/.env
+!.env.example
+ros-website/.env.example
+
+# --- IDE & OS Metadata ---
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
