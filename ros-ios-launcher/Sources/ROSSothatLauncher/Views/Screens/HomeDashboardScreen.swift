@@ -167,12 +167,14 @@ struct PlayActionSheet: View {
                         .tracking(1.2)
                         .foregroundColor(TacticalTheme.gold)
                     Spacer()
-                    Button("CLOSE") {
+                    Button(action: {
                         isPresented = false
+                    }) {
+                        Text("CLOSE")
+                            .font(.system(size: 11, weight: .bold))
+                            .tracking(1.0)
+                            .foregroundColor(TacticalTheme.textMuted)
                     }
-                    .font(.system(size: 11, weight: .bold))
-                    .tracking(1.0)
-                    .foregroundColor(TacticalTheme.textMuted)
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 20)
@@ -287,12 +289,14 @@ struct DownloadActionSheet: View {
                         .tracking(1.2)
                         .foregroundColor(TacticalTheme.gold)
                     Spacer()
-                    Button("CLOSE") {
+                    Button(action: {
                         isPresented = false
+                    }) {
+                        Text("CLOSE")
+                            .font(.system(size: 11, weight: .bold))
+                            .tracking(1.0)
+                            .foregroundColor(TacticalTheme.textMuted)
                     }
-                    .font(.system(size: 11, weight: .bold))
-                    .tracking(1.0)
-                    .foregroundColor(TacticalTheme.textMuted)
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 20)
@@ -387,12 +391,14 @@ struct LoginActionSheet: View {
                         .tracking(1.2)
                         .foregroundColor(TacticalTheme.gold)
                     Spacer()
-                    Button("CLOSE") {
+                    Button(action: {
                         isPresented = false
+                    }) {
+                        Text("CLOSE")
+                            .font(.system(size: 11, weight: .bold))
+                            .tracking(1.0)
+                            .foregroundColor(TacticalTheme.textMuted)
                     }
-                    .font(.system(size: 11, weight: .bold))
-                    .tracking(1.0)
-                    .foregroundColor(TacticalTheme.textMuted)
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 20)
