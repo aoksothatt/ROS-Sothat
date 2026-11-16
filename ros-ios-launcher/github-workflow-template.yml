@@ -1,0 +1,130 @@
+name: Build ROS-Sothat iOS Launcher
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'ros-ios-launcher/**'
+      - '.github/workflows/ios-launcher-build.yml'
+  pull_request:
+    paths:
+      - 'ros-ios-launcher/**'
+  workflow_dispatch:
+
+jobs:
+  build-ios-launcher:
+    name: Build Native iOS App (xcodebuild)
+    runs-on: macos-14
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Check Environment & Xcode Setup
+        run: |
+          echo "=== macOS Host Information ==="
+          sw_vers
+          uname -m
+          echo "=== Available Xcode Installations ==="
+          ls -d /Applications/Xcode* || true
+          
+          if [ -d "/Applications/Xcode_15.4.app" ]; then
+            sudo xcode-select -s /Applications/Xcode_15.4.app/Contents/Developer
+          elif [ -d "/Applications/Xcode_16.0.app" ]; then
+            sudo xcode-select -s /Applications/Xcode_16.0.app/Contents/Developer
+          fi
+          xcodebuild -version
+
+      - name: Verify Xcode Project & Schemes
+        run: |
+          cd ros-ios-launcher
+          echo "=== Xcode Project Information ==="
+          xcodebuild -list -project ROSSothatLauncher.xcodeproj
+
+      - name: Compile iOS Launcher Binary (xcodebuild)
+        run: |
+          set -euo pipefail
+          
+          mkdir -p build/derivedData
+          
+          xcodebuild clean build \
+            -project ros-ios-launcher/ROSSothatLauncher.xcodeproj \
+            -scheme ROSSothatLauncher \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build/derivedData \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            AD_HOC_CODE_SIGNING_ALLOWED=YES
+
+      - name: Verify Built Application Bundle
+        run: |
+          set -euo pipefail
+          
+          APP_PATH="build/derivedData/Build/Products/Release-iphoneos/ROSSothatLauncher.app"
+          
+          if [ ! -d "$APP_PATH" ]; then
+            echo "ERROR: Built app bundle not found at $APP_PATH"
+            exit 1
+          fi
+          
+          echo "=== App Bundle Verification ==="
+          ls -la "$APP_PATH"
+          
+          if [ ! -f "$APP_PATH/ROSSothatLauncher" ]; then
+            echo "ERROR: Executable Mach-O binary missing inside app bundle!"
+            exit 1
+          fi
+          
+          if [ ! -f "$APP_PATH/Info.plist" ]; then
+            echo "ERROR: Info.plist missing inside app bundle!"
+            exit 1
+          fi
+          
+          echo "Mach-O Architecture Check:"
+          file "$APP_PATH/ROSSothatLauncher"
+          
+          echo "App Bundle Identifier:"
+          /usr/libexec/PlistBuddy -c "Print CFBundleIdentifier" "$APP_PATH/Info.plist"
+          
+          echo "App Version:"
+          /usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" "$APP_PATH/Info.plist"
+
+      - name: Package Unsigned IPA & Compress App Bundle
+        run: |
+          set -euo pipefail
+          
+          APP_PATH="build/derivedData/Build/Products/Release-iphoneos/ROSSothatLauncher.app"
+          
+          mkdir -p build/artifacts/Payload
+          cp -R "$APP_PATH" build/artifacts/Payload/
+          
+          cd build/artifacts
+          zip -r -q ROSSothatLauncher-unsigned.ipa Payload
+          echo "=== IPA Package Created ==="
+          ls -lh ROSSothatLauncher-unsigned.ipa
+          
+          cd ../derivedData/Build/Products/Release-iphoneos
+          zip -r -q "$GITHUB_WORKSPACE/build/artifacts/ROSSothatLauncher.app.zip" ROSSothatLauncher.app
+          
+          cd "$GITHUB_WORKSPACE/build/artifacts"
+          echo "=== Final Artifacts ==="
+          ls -lh
+
+      - name: Upload Unsigned IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ROSSothatLauncher-unsigned-ipa
+          path: build/artifacts/ROSSothatLauncher-unsigned.ipa
+          retention-days: 14
+
+      - name: Upload Built App Bundle (.app.zip) for Troubleshooting
+        uses: actions/upload-artifact@v4
+        with:
+          name: ROSSothatLauncher-app-bundle
+          path: build/artifacts/ROSSothatLauncher.app.zip
+          retention-days: 14
