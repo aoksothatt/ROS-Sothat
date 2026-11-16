@@ -1,28 +1,30 @@
 import SwiftUI
 
 public enum TacticalTheme {
-    // Backgrounds
+    // Backgrounds - deep tactical charcoal & matte black
     public static let bgPrimary = Color(hex: "080B10")
-    public static let bgSecondary = Color(hex: "101720")
-    public static let bgCard = Color(hex: "151E29")
-    public static let bgCardHover = Color(hex: "1A2634")
+    public static let bgSecondary = Color(hex: "0D1219")
+    public static let bgCard = Color(hex: "121822")
+    public static let bgCardHover = Color(hex: "17202D")
     
-    // Accents
+    // Accents - refined military gold
     public static let gold = Color(hex: "D7A84B")
     public static let goldLight = Color(hex: "E5B85C")
     public static let goldDark = Color(hex: "B88A32")
+    public static let goldMuted = Color(hex: "7A6332")
     public static let red = Color(hex: "B94B3C")
     public static let redHover = Color(hex: "CB5A4A")
     
-    // Borders
-    public static let border = Color(hex: "263442")
-    public static let borderLight = Color(hex: "384D63")
-    public static let borderGold = Color(hex: "D7A84B").opacity(0.4)
+    // Borders - precise hairline borders
+    public static let border = Color(hex: "1E2836")
+    public static let borderLight = Color(hex: "2A384A")
+    public static let borderGold = Color(hex: "D7A84B").opacity(0.35)
+    public static let borderGoldSolid = Color(hex: "D7A84B")
     
     // Text
     public static let textPrimary = Color(hex: "F3F6FA")
-    public static let textSecondary = Color(hex: "9AA7B5")
-    public static let textMuted = Color(hex: "64748B")
+    public static let textSecondary = Color(hex: "94A3B8")
+    public static let textMuted = Color(hex: "566579")
     
     // Status
     public static let success = Color(hex: "34D399")

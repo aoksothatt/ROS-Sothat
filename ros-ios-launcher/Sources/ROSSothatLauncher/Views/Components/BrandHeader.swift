@@ -13,24 +13,25 @@ public struct BrandHeader: View {
         HStack {
             HStack(spacing: 8) {
                 ZStack {
-                    RoundedRectangle(cornerRadius: 6)
-                        .fill(TacticalTheme.gold.opacity(0.15))
-                        .frame(width: 32, height: 32)
+                    RoundedRectangle(cornerRadius: 3)
+                        .fill(TacticalTheme.bgCard)
+                        .frame(width: 28, height: 28)
                         .overlay(
-                            RoundedRectangle(cornerRadius: 6)
-                                .stroke(TacticalTheme.gold.opacity(0.4), lineWidth: 1)
+                            RoundedRectangle(cornerRadius: 3)
+                                .stroke(TacticalTheme.borderGold, lineWidth: 1)
                         )
-                    Text("⚔️")
-                        .font(.system(size: 16))
+                    Image(systemName: "shield.fill")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(TacticalTheme.gold)
                 }
                 
                 VStack(alignment: .leading, spacing: 1) {
                     HStack(spacing: 4) {
                         Text("ROS")
-                            .font(.system(size: 18, weight: .black, design: .default))
+                            .font(.system(size: 16, weight: .black))
                             .foregroundColor(TacticalTheme.textPrimary)
                         Text("SOTHATT")
-                            .font(.system(size: 18, weight: .black, design: .default))
+                            .font(.system(size: 16, weight: .black))
                             .foregroundColor(TacticalTheme.gold)
                     }
                     Text("RULES OF SURVIVAL LEGACY")
@@ -46,23 +47,22 @@ public struct BrandHeader: View {
                 HStack(spacing: 6) {
                     Circle()
                         .fill(TacticalTheme.success)
-                        .frame(width: 8, height: 8)
-                        .shadow(color: TacticalTheme.success.opacity(0.8), radius: 4)
-                    Text("\(serverPing) ms")
-                        .font(.system(size: 11, weight: .bold, design: .monospaced))
+                        .frame(width: 6, height: 6)
+                    Text("\(serverPing) MS")
+                        .font(.system(size: 10, weight: .bold, design: .monospaced))
                         .foregroundColor(TacticalTheme.success)
                 }
-                .padding(.horizontal, 10)
-                .padding(.vertical, 5)
-                .background(TacticalTheme.success.opacity(0.1))
-                .cornerRadius(12)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(TacticalTheme.bgCard)
+                .cornerRadius(2)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(TacticalTheme.success.opacity(0.3), lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 2)
+                        .stroke(TacticalTheme.border, lineWidth: 1)
                 )
             }
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, 10)
+        .padding(.vertical, 8)
     }
 }

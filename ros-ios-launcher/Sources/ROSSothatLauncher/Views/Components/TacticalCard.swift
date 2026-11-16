@@ -13,18 +13,12 @@ public struct TacticalCard<Content: View>: View {
         VStack(alignment: .leading, spacing: 12) {
             content
         }
-        .padding(16)
+        .padding(14)
         .background(TacticalTheme.bgCard)
-        .cornerRadius(8)
+        .cornerRadius(4)
         .overlay(
-            RoundedRectangle(cornerRadius: 8)
+            RoundedRectangle(cornerRadius: 4)
                 .stroke(isHighlighted ? TacticalTheme.borderGold : TacticalTheme.border, lineWidth: 1)
-        )
-        .shadow(
-            color: isHighlighted ? TacticalTheme.gold.opacity(0.12) : Color.black.opacity(0.3),
-            radius: isHighlighted ? 12 : 6,
-            x: 0,
-            y: 3
         )
     }
 }

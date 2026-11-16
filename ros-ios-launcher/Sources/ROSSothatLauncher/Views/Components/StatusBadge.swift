@@ -18,15 +18,15 @@ public struct StatusBadge: View {
     
     public var body: some View {
         Text(text)
-            .font(.system(size: 10, weight: .bold))
+            .font(.system(size: 9, weight: .bold, design: .monospaced))
             .tracking(0.8)
             .padding(.horizontal, 8)
-            .padding(.vertical, 4)
+            .padding(.vertical, 3)
             .background(bgColor)
             .foregroundColor(fgColor)
-            .cornerRadius(4)
+            .cornerRadius(2)
             .overlay(
-                RoundedRectangle(cornerRadius: 4)
+                RoundedRectangle(cornerRadius: 2)
                     .stroke(borderColor, lineWidth: 1)
             )
     }
@@ -49,9 +49,9 @@ public struct StatusBadge: View {
     
     private var borderColor: Color {
         switch variant {
-        case .gold: return TacticalTheme.gold.opacity(0.35)
-        case .beta, .online: return TacticalTheme.success.opacity(0.35)
-        case .warning: return TacticalTheme.warning.opacity(0.35)
+        case .gold: return TacticalTheme.gold.opacity(0.4)
+        case .beta, .online: return TacticalTheme.success.opacity(0.4)
+        case .warning: return TacticalTheme.warning.opacity(0.4)
         }
     }
 }

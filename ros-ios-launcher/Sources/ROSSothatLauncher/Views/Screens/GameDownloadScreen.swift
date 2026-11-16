@@ -17,17 +17,18 @@ public struct GameDownloadScreen: View {
                         launcherVM.navigateTo(.homeDashboard)
                     }) {
                         HStack(spacing: 4) {
-                            Text("←")
-                                .font(.system(size: 16, weight: .bold))
-                            Text("DASHBOARD")
+                            Image(systemName: "chevron.left")
                                 .font(.system(size: 12, weight: .bold))
+                            Text("DASHBOARD")
+                                .font(.system(size: 11, weight: .bold))
+                                .tracking(1.0)
                         }
                         .foregroundColor(TacticalTheme.gold)
                     }
                     Spacer()
                     Text("CLIENT DISTRIBUTION")
-                        .font(.system(size: 12, weight: .bold))
-                        .tracking(1.0)
+                        .font(.system(size: 11, weight: .bold))
+                        .tracking(1.2)
                         .foregroundColor(TacticalTheme.textSecondary)
                 }
                 .padding(.horizontal, 16)
@@ -41,27 +42,28 @@ public struct GameDownloadScreen: View {
                 )
                 
                 ScrollView {
-                    VStack(spacing: 18) {
+                    VStack(spacing: 16) {
                         // Package Card
                         TacticalCard(isHighlighted: true) {
-                            VStack(alignment: .leading, spacing: 14) {
-                                HStack(alignment: .top) {
+                            VStack(alignment: .leading, spacing: 12) {
+                                HStack(alignment: .top, spacing: 12) {
                                     ZStack {
-                                        RoundedRectangle(cornerRadius: 10)
+                                        RoundedRectangle(cornerRadius: 3)
                                             .fill(TacticalTheme.bgSecondary)
-                                            .frame(width: 52, height: 52)
+                                            .frame(width: 44, height: 44)
                                             .overlay(
-                                                RoundedRectangle(cornerRadius: 10)
+                                                RoundedRectangle(cornerRadius: 3)
                                                     .stroke(TacticalTheme.borderGold, lineWidth: 1)
                                             )
-                                        Text("📦")
-                                            .font(.system(size: 26))
+                                        Image(systemName: "shippingbox.fill")
+                                            .font(.system(size: 18))
+                                            .foregroundColor(TacticalTheme.gold)
                                     }
                                     
                                     VStack(alignment: .leading, spacing: 3) {
                                         HStack {
                                             Text("ROS LEGACY CLIENT")
-                                                .font(.system(size: 15, weight: .black))
+                                                .font(.system(size: 14, weight: .black))
                                                 .foregroundColor(TacticalTheme.textPrimary)
                                             StatusBadge("v\(launcherVM.gameVersion.version)", variant: .gold)
                                         }
@@ -77,9 +79,9 @@ public struct GameDownloadScreen: View {
                                 
                                 Divider().background(TacticalTheme.border)
                                 
-                                // Real iOS Download Action
-                                VStack(alignment: .leading, spacing: 10) {
-                                    PrimaryButton("DOWNLOAD CLIENT IPA IN SAFARI", icon: "🌐") {
+                                // Direct Download Action
+                                VStack(alignment: .leading, spacing: 8) {
+                                    PrimaryButton("DOWNLOAD CLIENT IPA IN SAFARI", systemImage: "arrow.down.to.line") {
                                         if let url = URL(string: "https://rossothat.com/download") {
                                             UIApplication.shared.open(url, options: [:], completionHandler: nil)
                                         }
@@ -97,9 +99,14 @@ public struct GameDownloadScreen: View {
                         TacticalCard {
                             VStack(alignment: .leading, spacing: 8) {
                                 HStack {
-                                    Text("🛡️ SHA-256 VERIFICATION HASH")
-                                        .font(.system(size: 10, weight: .bold))
-                                        .foregroundColor(TacticalTheme.gold)
+                                    HStack(spacing: 5) {
+                                        Image(systemName: "lock.shield.fill")
+                                            .font(.system(size: 11))
+                                            .foregroundColor(TacticalTheme.gold)
+                                        Text("SHA-256 VERIFICATION HASH")
+                                            .font(.system(size: 10, weight: .bold))
+                                            .foregroundColor(TacticalTheme.gold)
+                                    }
                                     Spacer()
                                     StatusBadge("AUTHENTIC", variant: .beta)
                                 }
@@ -110,7 +117,11 @@ public struct GameDownloadScreen: View {
                                     .padding(8)
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                     .background(TacticalTheme.bgPrimary)
-                                    .cornerRadius(4)
+                                    .cornerRadius(2)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 2)
+                                            .stroke(TacticalTheme.border, lineWidth: 1)
+                                    )
                                 
                                 Text("Cryptographic digest verifies byte-for-byte authenticity against the golden archive.")
                                     .font(.system(size: 10))
@@ -122,8 +133,10 @@ public struct GameDownloadScreen: View {
                         // Ad Hoc Security Notice
                         TacticalCard {
                             HStack(alignment: .top, spacing: 10) {
-                                Text("⚠️")
-                                    .font(.system(size: 18))
+                                Image(systemName: "exclamationmark.triangle.fill")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(TacticalTheme.warning)
+                                
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text("AD HOC SIGNING REQUIREMENT")
                                         .font(.system(size: 11, weight: .bold))
@@ -138,7 +151,7 @@ public struct GameDownloadScreen: View {
                         .padding(.horizontal, 16)
                     }
                     .padding(.top, 14)
-                    .padding(.bottom, 80)
+                    .padding(.bottom, 40)
                 }
             }
         }

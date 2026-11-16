@@ -12,148 +12,126 @@ public struct HomeDashboardScreen: View {
     
     public var body: some View {
         ZStack {
+            // Dark charcoal / black tactical background
             TacticalTheme.bgPrimary.ignoresSafeArea()
             
-            // Subtle radial gold ambient glow behind hero
-            VStack {
-                RadialGradient(
-                    gradient: Gradient(colors: [TacticalTheme.gold.opacity(0.12), Color.clear]),
-                    center: .center,
-                    startRadius: 20,
-                    endRadius: 300
-                )
-                .frame(height: 380)
-                .ignoresSafeArea()
-                Spacer()
-            }
-            
             VStack(spacing: 0) {
-                // Top Status Bar
+                // MARK: - Top Tactical Bar
                 HStack {
+                    // Operator Status
                     if authVM.isAuthenticated, let user = authVM.currentUser {
                         HStack(spacing: 6) {
                             Circle()
                                 .fill(TacticalTheme.success)
-                                .frame(width: 8, height: 8)
-                            Text("OPERATOR:")
-                                .font(.system(size: 10, weight: .bold))
-                                .foregroundColor(TacticalTheme.textMuted)
-                            Text(user.username.uppercased())
-                                .font(.system(size: 11, weight: .black))
+                                .frame(width: 5, height: 5)
+                            Text("OPERATOR // \(user.username.uppercased())")
+                                .font(.system(size: 10, weight: .bold, design: .monospaced))
+                                .tracking(0.8)
                                 .foregroundColor(TacticalTheme.gold)
                         }
                         .padding(.horizontal, 10)
                         .padding(.vertical, 5)
                         .background(TacticalTheme.bgCard)
-                        .cornerRadius(12)
+                        .cornerRadius(3)
                         .overlay(
-                            RoundedRectangle(cornerRadius: 12)
+                            RoundedRectangle(cornerRadius: 3)
                                 .stroke(TacticalTheme.borderGold, lineWidth: 1)
                         )
                     } else {
                         HStack(spacing: 6) {
                             Circle()
                                 .fill(TacticalTheme.textMuted)
-                                .frame(width: 8, height: 8)
-                            Text("GUEST MODE")
-                                .font(.system(size: 10, weight: .bold))
+                                .frame(width: 5, height: 5)
+                            Text("STANDBY // GUEST")
+                                .font(.system(size: 10, weight: .bold, design: .monospaced))
+                                .tracking(0.8)
                                 .foregroundColor(TacticalTheme.textMuted)
                         }
                         .padding(.horizontal, 10)
                         .padding(.vertical, 5)
                         .background(TacticalTheme.bgCard)
-                        .cornerRadius(12)
+                        .cornerRadius(3)
                         .overlay(
-                            RoundedRectangle(cornerRadius: 12)
+                            RoundedRectangle(cornerRadius: 3)
                                 .stroke(TacticalTheme.border, lineWidth: 1)
                         )
                     }
                     
                     Spacer()
                     
+                    // Small Login Button in Top-Right Corner
                     Button(action: {
                         showLoginSheet = true
                     }) {
-                        HStack(spacing: 5) {
-                            Text("🔑")
-                                .font(.system(size: 12))
-                            Text(authVM.isAuthenticated ? "ACCOUNT" : "LOGIN")
-                                .font(.system(size: 11, weight: .bold))
-                                .foregroundColor(TacticalTheme.gold)
-                        }
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(TacticalTheme.bgCard)
-                        .cornerRadius(12)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(TacticalTheme.borderGold, lineWidth: 1)
-                        )
+                        Text(authVM.isAuthenticated ? "ACCOUNT" : "LOGIN")
+                            .font(.system(size: 10, weight: .bold))
+                            .tracking(1.4)
+                            .foregroundColor(TacticalTheme.gold)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(TacticalTheme.bgCard)
+                            .cornerRadius(3)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 3)
+                                    .stroke(TacticalTheme.borderGold, lineWidth: 1)
+                            )
                     }
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 10)
-                .padding(.bottom, 16)
+                .padding(.bottom, 12)
                 
                 Spacer()
                 
-                // Center Hero Branding
+                // MARK: - Center Hero (Focus on Game Artwork)
                 VStack(spacing: 16) {
+                    // Artwork with clean, flat gold bezel
                     Image("Logo")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
-                        .frame(width: 140, height: 140)
-                        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                        .frame(width: 170, height: 170)
+                        .clipShape(RoundedRectangle(cornerRadius: 6))
                         .overlay(
-                            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                                .stroke(
-                                    LinearGradient(
-                                        colors: [TacticalTheme.goldLight, TacticalTheme.goldDark],
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    ),
-                                    lineWidth: 2
-                                )
+                            RoundedRectangle(cornerRadius: 6)
+                                .stroke(TacticalTheme.borderGold, lineWidth: 1)
                         )
-                        .shadow(color: TacticalTheme.gold.opacity(0.35), radius: 20, x: 0, y: 6)
                     
                     VStack(spacing: 6) {
-                        HStack(spacing: 8) {
+                        HStack(spacing: 6) {
                             Text("ROS")
-                                .font(.system(size: 32, weight: .black))
+                                .font(.system(size: 26, weight: .black))
+                                .tracking(2.0)
                                 .foregroundColor(TacticalTheme.textPrimary)
                             Text("SOTHATT")
-                                .font(.system(size: 32, weight: .black))
+                                .font(.system(size: 26, weight: .black))
+                                .tracking(2.0)
                                 .foregroundColor(TacticalTheme.gold)
                         }
                         
                         Text("RULES OF SURVIVAL LEGACY")
-                            .font(.system(size: 12, weight: .bold))
-                            .tracking(2.5)
+                            .font(.system(size: 11, weight: .bold))
+                            .tracking(3.0)
                             .foregroundColor(TacticalTheme.textSecondary)
                         
-                        StatusBadge("COMMUNITY LAUNCHER", variant: .gold)
+                        Rectangle()
+                            .fill(TacticalTheme.borderGold)
+                            .frame(width: 48, height: 1)
                             .padding(.top, 4)
                     }
                 }
                 
                 Spacer()
                 
-                // The 3 Main Actions
-                VStack(spacing: 14) {
-                    // Action 1: PLAY GAME (Primary CTA)
-                    PrimaryButton("PLAY GAME", icon: "▶️") {
+                // MARK: - Bottom Action Buttons (Clear, Flat, Precision Gaming UI)
+                VStack(spacing: 12) {
+                    // Action 1: PLAY GAME (Primary Action)
+                    PrimaryButton("PLAY GAME", systemImage: "play.fill") {
                         showPlaySheet = true
                     }
                     
-                    // Action 2: DOWNLOAD GAME IPA
-                    SecondaryButton("DOWNLOAD GAME IPA", icon: "📥") {
+                    // Action 2: DOWNLOAD GAME (Secondary Action)
+                    SecondaryButton("DOWNLOAD GAME", systemImage: "arrow.down.to.line") {
                         showDownloadSheet = true
-                    }
-                    
-                    // Action 3: LOGIN
-                    SecondaryButton(authVM.isAuthenticated ? "MANAGE OPERATOR ACCOUNT" : "LOGIN TO ACCOUNT", icon: "🔑") {
-                        showLoginSheet = true
                     }
                 }
                 .padding(.horizontal, 24)
@@ -176,68 +154,72 @@ public struct HomeDashboardScreen: View {
 // MARK: - Play Action Sheet
 struct PlayActionSheet: View {
     @Binding var isPresented: Bool
-    @State private var launchAttempted: Bool = false
     
     var body: some View {
         ZStack {
             TacticalTheme.bgPrimary.ignoresSafeArea()
             
-            VStack(spacing: 20) {
+            VStack(spacing: 16) {
                 // Header
                 HStack {
-                    Text("WAR ROOM — PLAY GAME")
-                        .font(.system(size: 13, weight: .black))
-                        .tracking(1.0)
+                    Text("DEPLOYMENT // PLAY GAME")
+                        .font(.system(size: 12, weight: .black))
+                        .tracking(1.2)
                         .foregroundColor(TacticalTheme.gold)
                     Spacer()
-                    Button("Close") {
+                    Button("CLOSE") {
                         isPresented = false
                     }
-                    .font(.system(size: 13, weight: .bold))
+                    .font(.system(size: 11, weight: .bold))
+                    .tracking(1.0)
                     .foregroundColor(TacticalTheme.textMuted)
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 20)
                 
                 ScrollView {
-                    VStack(spacing: 18) {
+                    VStack(spacing: 14) {
                         TacticalCard(isHighlighted: true) {
-                            VStack(spacing: 12) {
-                                Text("⚔️")
-                                    .font(.system(size: 36))
-                                Text("RULES OF SURVIVAL LEGACY")
+                            VStack(alignment: .leading, spacing: 8) {
+                                HStack {
+                                    Text("CLIENT STATUS")
+                                        .font(.system(size: 10, weight: .bold))
+                                        .tracking(1.0)
+                                        .foregroundColor(TacticalTheme.gold)
+                                    Spacer()
+                                    StatusBadge("AUTHENTIC", variant: .beta)
+                                }
+                                
+                                Text("Rules of Survival Legacy")
                                     .font(.system(size: 16, weight: .black))
                                     .foregroundColor(TacticalTheme.textPrimary)
-                                Text("Ready for combat deployment on private island rooms.")
-                                    .font(.system(size: 12))
+                                
+                                Text("Preserved iOS ARM64 client build ready for island deployment.")
+                                    .font(.system(size: 11))
                                     .foregroundColor(TacticalTheme.textSecondary)
-                                    .multilineTextAlignment(.center)
                             }
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 8)
                         }
                         
-                        // Launch Option 1: URL Scheme
+                        // Option 1: URL Scheme Launch
                         TacticalCard {
                             VStack(alignment: .leading, spacing: 10) {
                                 HStack {
-                                    Text("OPTION 1")
-                                        .font(.system(size: 10, weight: .black))
+                                    Text("METHOD 1")
+                                        .font(.system(size: 10, weight: .bold))
                                         .foregroundColor(TacticalTheme.gold)
                                     Spacer()
                                     StatusBadge("URL SCHEME", variant: .online)
                                 }
                                 
-                                Text("Attempt Direct Launch")
-                                    .font(.system(size: 14, weight: .bold))
+                                Text("Direct Client Launch")
+                                    .font(.system(size: 13, weight: .bold))
                                     .foregroundColor(TacticalTheme.textPrimary)
                                 
-                                Text("Attempts to launch the game client via its registered 'rosmobile://' URL scheme.")
+                                Text("Launches the sideloaded game client directly via its registered 'rosmobile://' URL protocol.")
                                     .font(.system(size: 11))
                                     .foregroundColor(TacticalTheme.textSecondary)
                                 
-                                PrimaryButton("LAUNCH VIA 'rosmobile://'", icon: "🚀") {
-                                    launchAttempted = true
+                                PrimaryButton("LAUNCH VIA 'rosmobile://'", systemImage: "play.fill") {
                                     if let url = URL(string: "rosmobile://") {
                                         UIApplication.shared.open(url, options: [:], completionHandler: nil)
                                     }
@@ -246,31 +228,38 @@ struct PlayActionSheet: View {
                             }
                         }
                         
-                        // Launch Option 2: Home Screen Manual
+                        // Option 2: Home Screen Launch
                         TacticalCard {
-                            VStack(alignment: .leading, spacing: 10) {
+                            VStack(alignment: .leading, spacing: 8) {
                                 HStack {
-                                    Text("OPTION 2")
-                                        .font(.system(size: 10, weight: .black))
+                                    Text("METHOD 2")
+                                        .font(.system(size: 10, weight: .bold))
                                         .foregroundColor(TacticalTheme.gold)
                                     Spacer()
                                     StatusBadge("HOME SCREEN", variant: .gold)
                                 }
                                 
-                                Text("iPhone Home Screen Launch")
-                                    .font(.system(size: 14, weight: .bold))
+                                Text("iPhone Home Screen")
+                                    .font(.system(size: 13, weight: .bold))
                                     .foregroundColor(TacticalTheme.textPrimary)
                                 
-                                Text("If Rules of Survival Legacy has been sideloaded onto your iPhone, swipe up and tap the 'RoS Legacy' app icon directly from your Home Screen.")
+                                Text("If Rules of Survival Legacy has been installed on your device, swipe up to your Home Screen and tap the 'RoS Legacy' app icon directly.")
                                     .font(.system(size: 11))
                                     .foregroundColor(TacticalTheme.textSecondary)
+                            }
+                        }
+                        
+                        // Security Notice
+                        TacticalCard {
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("IOS SANDBOX POLICY")
+                                    .font(.system(size: 9, weight: .bold))
+                                    .tracking(1.0)
+                                    .foregroundColor(TacticalTheme.textMuted)
                                 
-                                Text("ℹ️ Under standard iOS security sandboxing, one app cannot force another app to open unless the target custom URL scheme is active.")
+                                Text("Standard iOS application sandboxing prevents third-party apps from injecting code or forcing external processes to execute without URL schemes.")
                                     .font(.system(size: 10))
                                     .foregroundColor(TacticalTheme.textMuted)
-                                    .padding(8)
-                                    .background(TacticalTheme.bgSecondary)
-                                    .cornerRadius(6)
                             }
                         }
                     }
@@ -290,78 +279,86 @@ struct DownloadActionSheet: View {
         ZStack {
             TacticalTheme.bgPrimary.ignoresSafeArea()
             
-            VStack(spacing: 20) {
+            VStack(spacing: 16) {
                 // Header
                 HStack {
-                    Text("CLIENT DISTRIBUTION")
-                        .font(.system(size: 13, weight: .black))
-                        .tracking(1.0)
+                    Text("DISTRIBUTION // DOWNLOAD GAME")
+                        .font(.system(size: 12, weight: .black))
+                        .tracking(1.2)
                         .foregroundColor(TacticalTheme.gold)
                     Spacer()
-                    Button("Close") {
+                    Button("CLOSE") {
                         isPresented = false
                     }
-                    .font(.system(size: 13, weight: .bold))
+                    .font(.system(size: 11, weight: .bold))
+                    .tracking(1.0)
                     .foregroundColor(TacticalTheme.textMuted)
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 20)
                 
                 ScrollView {
-                    VStack(spacing: 18) {
+                    VStack(spacing: 14) {
+                        // Package Card
                         TacticalCard(isHighlighted: true) {
-                            VStack(spacing: 10) {
-                                Text("📦")
-                                    .font(.system(size: 36))
-                                Text("ORIGINAL GAME IPA PACKAGE")
+                            VStack(alignment: .leading, spacing: 8) {
+                                HStack {
+                                    Text("ARCHIVE PACKAGE")
+                                        .font(.system(size: 10, weight: .bold))
+                                        .tracking(1.0)
+                                        .foregroundColor(TacticalTheme.gold)
+                                    Spacer()
+                                    StatusBadge("ARM64 IPA", variant: .gold)
+                                }
+                                
+                                Text("Rules of Survival Legacy")
                                     .font(.system(size: 16, weight: .black))
                                     .foregroundColor(TacticalTheme.textPrimary)
-                                Text("Preserved original Rules of Survival iOS ARM64 client package (846 MB).")
-                                    .font(.system(size: 12))
+                                
+                                Text("Preserved original iOS client binary (approx. 846 MB).")
+                                    .font(.system(size: 11))
                                     .foregroundColor(TacticalTheme.textSecondary)
-                                    .multilineTextAlignment(.center)
                             }
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 8)
                         }
                         
                         // Download Action
                         TacticalCard {
-                            VStack(alignment: .leading, spacing: 12) {
-                                Text("DOWNLOAD FILE VIA SAFARI")
+                            VStack(alignment: .leading, spacing: 10) {
+                                Text("DIRECT SAFARI DOWNLOAD")
                                     .font(.system(size: 12, weight: .bold))
                                     .foregroundColor(TacticalTheme.gold)
                                 
-                                Text("Tap below to download the game IPA package directly into your iPhone's Files app / Safari download manager.")
+                                Text("Tap below to download the IPA package into your iPhone Files / Safari download queue.")
                                     .font(.system(size: 11))
                                     .foregroundColor(TacticalTheme.textSecondary)
                                 
-                                PrimaryButton("OPEN DOWNLOAD IN SAFARI", icon: "🌐") {
+                                PrimaryButton("DOWNLOAD IPA VIA SAFARI", systemImage: "arrow.down.to.line") {
                                     if let url = URL(string: "https://rossothat.com/download") {
                                         UIApplication.shared.open(url, options: [:], completionHandler: nil)
                                     }
                                 }
+                                .padding(.top, 4)
                             }
                         }
                         
-                        // Sideload Notice
+                        // Sideload Instructions
                         TacticalCard {
-                            VStack(alignment: .leading, spacing: 10) {
-                                Text("⚙️ HOW TO INSTALL ON IPHONE")
-                                    .font(.system(size: 11, weight: .black))
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("INSTALLATION INSTRUCTIONS")
+                                    .font(.system(size: 11, weight: .bold))
                                     .foregroundColor(TacticalTheme.gold)
                                 
-                                Text("1. iOS sandboxing prevents any normal app from installing an IPA file directly on device.")
-                                    .font(.system(size: 11))
-                                    .foregroundColor(TacticalTheme.textSecondary)
-                                
-                                Text("2. Use a computer with Sideloadly (Windows/Mac) or AltStore to sign and install the downloaded IPA using your free Apple ID.")
-                                    .font(.system(size: 11))
-                                    .foregroundColor(TacticalTheme.textSecondary)
-                                
-                                Text("3. Once installed, trust your certificate under Settings > General > VPN & Device Management.")
-                                    .font(.system(size: 11))
-                                    .foregroundColor(TacticalTheme.textSecondary)
+                                VStack(alignment: .leading, spacing: 6) {
+                                    Text("1. Transfer or open the downloaded IPA on your Mac/PC.")
+                                        .font(.system(size: 11))
+                                        .foregroundColor(TacticalTheme.textSecondary)
+                                    Text("2. Use Sideloadly or AltStore to sign the app with your Apple ID.")
+                                        .font(.system(size: 11))
+                                        .foregroundColor(TacticalTheme.textSecondary)
+                                    Text("3. On iPhone: Settings > General > VPN & Device Management > Trust.")
+                                        .font(.system(size: 11))
+                                        .foregroundColor(TacticalTheme.textSecondary)
+                                }
                             }
                         }
                     }
@@ -382,68 +379,66 @@ struct LoginActionSheet: View {
         ZStack {
             TacticalTheme.bgPrimary.ignoresSafeArea()
             
-            VStack(spacing: 20) {
+            VStack(spacing: 16) {
                 // Header
                 HStack {
                     Text("OPERATOR ACCESS")
-                        .font(.system(size: 13, weight: .black))
-                        .tracking(1.0)
+                        .font(.system(size: 12, weight: .black))
+                        .tracking(1.2)
                         .foregroundColor(TacticalTheme.gold)
                     Spacer()
-                    Button("Close") {
+                    Button("CLOSE") {
                         isPresented = false
                     }
-                    .font(.system(size: 13, weight: .bold))
+                    .font(.system(size: 11, weight: .bold))
+                    .tracking(1.0)
                     .foregroundColor(TacticalTheme.textMuted)
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 20)
                 
                 ScrollView {
-                    VStack(spacing: 20) {
+                    VStack(spacing: 14) {
                         if authVM.isAuthenticated, let user = authVM.currentUser {
                             TacticalCard(isHighlighted: true) {
                                 VStack(spacing: 14) {
-                                    Text("🎖️")
-                                        .font(.system(size: 40))
-                                    
                                     VStack(spacing: 4) {
-                                        Text(user.username)
-                                            .font(.system(size: 18, weight: .black))
+                                        Text(user.username.uppercased())
+                                            .font(.system(size: 16, weight: .black))
                                             .foregroundColor(TacticalTheme.textPrimary)
                                         Text(user.email)
-                                            .font(.system(size: 12))
+                                            .font(.system(size: 11))
                                             .foregroundColor(TacticalTheme.textMuted)
                                         StatusBadge("OPERATOR VERIFIED", variant: .online)
                                             .padding(.top, 4)
                                     }
                                     
-                                    SecondaryButton("SIGN OUT", icon: "🚪") {
+                                    SecondaryButton("SIGN OUT", systemImage: "rectangle.portrait.and.arrow.right") {
                                         authVM.signOut()
                                     }
-                                    .padding(.top, 8)
+                                    .padding(.top, 4)
                                 }
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 8)
                             }
                         } else {
                             TacticalCard(isHighlighted: true) {
-                                VStack(alignment: .leading, spacing: 14) {
-                                    Text("SIGN IN WITH OPERATOR ID")
-                                        .font(.system(size: 12, weight: .bold))
+                                VStack(alignment: .leading, spacing: 12) {
+                                    Text("ENTER OPERATOR CALLSIGN")
+                                        .font(.system(size: 11, weight: .bold))
                                         .foregroundColor(TacticalTheme.gold)
                                     
-                                    Text("PLAYER EMAIL / CALLSIGN")
+                                    Text("PLAYER EMAIL")
                                         .font(.system(size: 9, weight: .bold))
                                         .foregroundColor(TacticalTheme.textMuted)
-                                    CustomTextField("operator@ros-sothat.island", icon: "✉️", text: $authVM.emailInput)
+                                    CustomTextField("operator@domain.com", icon: "envelope.fill", text: $authVM.emailInput)
                                     
                                     Text("VERIFICATION CODE")
                                         .font(.system(size: 9, weight: .bold))
                                         .foregroundColor(TacticalTheme.textMuted)
-                                    CustomTextField("123456", icon: "🔐", text: $authVM.otpInput)
+                                    CustomTextField("123456", icon: "lock.fill", text: $authVM.otpInput)
                                     
-                                    PrimaryButton("SIGN IN AS OPERATOR", icon: "🔑", isLoading: authVM.isLoading) {
+                                    PrimaryButton("SIGN IN AS OPERATOR", systemImage: "key.fill", isLoading: authVM.isLoading) {
                                         authVM.verifyOtp()
                                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
                                             if authVM.isAuthenticated {
@@ -451,16 +446,16 @@ struct LoginActionSheet: View {
                                             }
                                         }
                                     }
-                                    .padding(.top, 6)
+                                    .padding(.top, 4)
                                 }
                             }
                             
                             TacticalCard {
                                 VStack(alignment: .leading, spacing: 6) {
-                                    Text("ℹ️ PRIVATE SERVER AUTHENTICATION")
+                                    Text("TOKEN AUTHENTICATION")
                                         .font(.system(size: 10, weight: .bold))
                                         .foregroundColor(TacticalTheme.gold)
-                                    Text("Interface is pre-configured and ready for live server token integration when the backend authentication endpoint goes live.")
+                                    Text("Operator state integrates with private server authentication endpoints.")
                                         .font(.system(size: 10))
                                         .foregroundColor(TacticalTheme.textSecondary)
                                 }

@@ -21,17 +21,18 @@ public struct PlayScreen: View {
                         launcherVM.navigateTo(.homeDashboard)
                     }) {
                         HStack(spacing: 4) {
-                            Text("←")
-                                .font(.system(size: 16, weight: .bold))
-                            Text("DASHBOARD")
+                            Image(systemName: "chevron.left")
                                 .font(.system(size: 12, weight: .bold))
+                            Text("DASHBOARD")
+                                .font(.system(size: 11, weight: .bold))
+                                .tracking(1.0)
                         }
                         .foregroundColor(TacticalTheme.gold)
                     }
                     Spacer()
                     Text("WAR ROOM DISPATCH")
-                        .font(.system(size: 12, weight: .bold))
-                        .tracking(1.0)
+                        .font(.system(size: 11, weight: .bold))
+                        .tracking(1.2)
                         .foregroundColor(TacticalTheme.textSecondary)
                 }
                 .padding(.horizontal, 16)
@@ -45,10 +46,10 @@ public struct PlayScreen: View {
                 )
                 
                 ScrollView {
-                    VStack(spacing: 20) {
+                    VStack(spacing: 16) {
                         // Combat Ready Hero Card
                         TacticalCard(isHighlighted: true) {
-                            VStack(spacing: 14) {
+                            VStack(spacing: 12) {
                                 HStack {
                                     VStack(alignment: .leading, spacing: 3) {
                                         Text("OPERATION ISLAND SURVIVOR")
@@ -56,7 +57,7 @@ public struct PlayScreen: View {
                                             .tracking(1.0)
                                             .foregroundColor(TacticalTheme.gold)
                                         Text(selectedMode)
-                                            .font(.system(size: 18, weight: .black))
+                                            .font(.system(size: 16, weight: .black))
                                             .foregroundColor(TacticalTheme.textPrimary)
                                     }
                                     Spacer()
@@ -102,37 +103,39 @@ public struct PlayScreen: View {
                         .padding(.horizontal, 16)
                         
                         // Mode Selection
-                        VStack(alignment: .leading, spacing: 10) {
+                        VStack(alignment: .leading, spacing: 8) {
                             Text("SELECT DEPLOYMENT MODE")
-                                .font(.system(size: 11, weight: .black))
-                                .tracking(1.0)
+                                .font(.system(size: 10, weight: .black))
+                                .tracking(1.2)
                                 .foregroundColor(TacticalTheme.textMuted)
                                 .padding(.horizontal, 16)
                             
-                            VStack(spacing: 8) {
+                            VStack(spacing: 6) {
                                 ForEach(matchModes, id: \.self) { mode in
                                     Button(action: {
                                         selectedMode = mode
                                     }) {
                                         HStack {
-                                            Text(modeIcon(mode))
-                                                .font(.system(size: 18))
-                                            Text(mode)
+                                            Image(systemName: modeIcon(mode))
                                                 .font(.system(size: 13, weight: .bold))
+                                                .foregroundColor(selectedMode == mode ? TacticalTheme.gold : TacticalTheme.textMuted)
+                                            Text(mode)
+                                                .font(.system(size: 12, weight: .bold))
+                                                .tracking(0.8)
                                                 .foregroundColor(selectedMode == mode ? TacticalTheme.gold : TacticalTheme.textPrimary)
                                             Spacer()
                                             if selectedMode == mode {
-                                                Text("✓")
-                                                    .font(.system(size: 13, weight: .black))
+                                                Image(systemName: "checkmark")
+                                                    .font(.system(size: 11, weight: .bold))
                                                     .foregroundColor(TacticalTheme.gold)
                                             }
                                         }
-                                        .padding(.horizontal, 16)
-                                        .padding(.vertical, 14)
+                                        .padding(.horizontal, 14)
+                                        .padding(.vertical, 12)
                                         .background(selectedMode == mode ? TacticalTheme.bgCardHover : TacticalTheme.bgCard)
-                                        .cornerRadius(6)
+                                        .cornerRadius(3)
                                         .overlay(
-                                            RoundedRectangle(cornerRadius: 6)
+                                            RoundedRectangle(cornerRadius: 3)
                                                 .stroke(selectedMode == mode ? TacticalTheme.gold : TacticalTheme.border, lineWidth: 1)
                                         )
                                     }
@@ -142,8 +145,8 @@ public struct PlayScreen: View {
                         }
                         
                         // Launch Action Area
-                        VStack(spacing: 14) {
-                            PrimaryButton("OPEN GAME CLIENT ('rosmobile://')", icon: "🚀") {
+                        VStack(spacing: 12) {
+                            PrimaryButton("OPEN GAME CLIENT ('rosmobile://')", systemImage: "play.fill") {
                                 if let url = URL(string: "rosmobile://") {
                                     UIApplication.shared.open(url, options: [:], completionHandler: nil)
                                 }
@@ -151,18 +154,14 @@ public struct PlayScreen: View {
                             .padding(.horizontal, 16)
                             
                             TacticalCard {
-                                VStack(alignment: .leading, spacing: 8) {
-                                    Text("ℹ️ LAUNCHING ON IPHONE")
-                                        .font(.system(size: 11, weight: .black))
+                                VStack(alignment: .leading, spacing: 6) {
+                                    Text("IOS SANDBOX POLICY")
+                                        .font(.system(size: 10, weight: .bold))
                                         .foregroundColor(TacticalTheme.gold)
                                     
-                                    Text("If Rules of Survival Legacy has been sideloaded, tap the button above to launch via the registered 'rosmobile://' scheme, or launch 'RoS Legacy' directly from your iPhone Home Screen.")
+                                    Text("If Rules of Survival Legacy has been sideloaded, tap above to open via 'rosmobile://', or launch 'RoS Legacy' directly from your iPhone Home Screen.")
                                         .font(.system(size: 11))
                                         .foregroundColor(TacticalTheme.textSecondary)
-                                    
-                                    Text("iOS sandboxing does not allow apps to silently run other apps without a registered custom URL scheme.")
-                                        .font(.system(size: 10))
-                                        .foregroundColor(TacticalTheme.textMuted)
                                 }
                             }
                             .padding(.horizontal, 16)
@@ -177,9 +176,9 @@ public struct PlayScreen: View {
     
     private func modeIcon(_ mode: String) -> String {
         switch mode {
-        case "SOLO SURVIVAL": return "👤"
-        case "DUO SQUAD": return "👥"
-        default: return "🏛️"
+        case "SOLO SURVIVAL": return "person.fill"
+        case "DUO SQUAD": return "person.2.fill"
+        default: return "shield.fill"
         }
     }
 }

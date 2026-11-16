@@ -17,17 +17,18 @@ public struct InstallationGuideScreen: View {
                         launcherVM.navigateTo(.homeDashboard)
                     }) {
                         HStack(spacing: 4) {
-                            Text("←")
-                                .font(.system(size: 16, weight: .bold))
-                            Text("DASHBOARD")
+                            Image(systemName: "chevron.left")
                                 .font(.system(size: 12, weight: .bold))
+                            Text("DASHBOARD")
+                                .font(.system(size: 11, weight: .bold))
+                                .tracking(1.0)
                         }
                         .foregroundColor(TacticalTheme.gold)
                     }
                     Spacer()
                     Text("INSTALLATION GUIDE")
-                        .font(.system(size: 12, weight: .bold))
-                        .tracking(1.0)
+                        .font(.system(size: 11, weight: .bold))
+                        .tracking(1.2)
                         .foregroundColor(TacticalTheme.textSecondary)
                 }
                 .padding(.horizontal, 16)
@@ -75,9 +76,14 @@ public struct InstallationGuideScreen: View {
                         // Critical System Instructions
                         TacticalCard(isHighlighted: true) {
                             VStack(alignment: .leading, spacing: 12) {
-                                Text("⚙️ MANDATORY SYSTEM SETTINGS")
-                                    .font(.system(size: 11, weight: .black))
-                                    .foregroundColor(TacticalTheme.gold)
+                                HStack(spacing: 6) {
+                                    Image(systemName: "gearshape.fill")
+                                        .font(.system(size: 11))
+                                        .foregroundColor(TacticalTheme.gold)
+                                    Text("MANDATORY SYSTEM SETTINGS")
+                                        .font(.system(size: 11, weight: .black))
+                                        .foregroundColor(TacticalTheme.gold)
+                                }
                                 
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text("A. Trust Developer Certificate")
@@ -124,9 +130,9 @@ struct GuideTabButton: View {
                 .frame(maxWidth: .infinity)
                 .background(isSelected ? TacticalTheme.gold : TacticalTheme.bgCard)
                 .foregroundColor(isSelected ? TacticalTheme.bgPrimary : TacticalTheme.textSecondary)
-                .cornerRadius(6)
+                .cornerRadius(3)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 6)
+                    RoundedRectangle(cornerRadius: 3)
                         .stroke(isSelected ? TacticalTheme.gold : TacticalTheme.border, lineWidth: 1)
                 )
         }
@@ -142,12 +148,12 @@ struct GuideStepCard: View {
         TacticalCard {
             HStack(spacing: 12) {
                 ZStack {
-                    Circle()
-                        .fill(TacticalTheme.gold.opacity(0.15))
-                        .frame(width: 36, height: 36)
+                    RoundedRectangle(cornerRadius: 3)
+                        .fill(TacticalTheme.bgSecondary)
+                        .frame(width: 32, height: 32)
                         .overlay(
-                            Circle()
-                                .stroke(TacticalTheme.gold, lineWidth: 1)
+                            RoundedRectangle(cornerRadius: 3)
+                                .stroke(TacticalTheme.borderGold, lineWidth: 1)
                         )
                     Text(step)
                         .font(.system(size: 13, weight: .black))
