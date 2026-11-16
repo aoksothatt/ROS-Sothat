@@ -34,7 +34,7 @@ public struct BrandHeader: View {
                             .font(.system(size: 16, weight: .black))
                             .foregroundColor(TacticalTheme.gold)
                     }
-                    Text("RULES OF SURVIVAL LEGACY")
+                    Text("TACTICAL LAUNCHER")
                         .font(.system(size: 8, weight: .bold))
                         .tracking(1.5)
                         .foregroundColor(TacticalTheme.textMuted)

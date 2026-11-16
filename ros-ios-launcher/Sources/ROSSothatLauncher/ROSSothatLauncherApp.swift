@@ -4,6 +4,8 @@ import SwiftUI
 public struct ROSSothatLauncherApp: App {
     @StateObject private var launcherVM = LauncherViewModel()
     @StateObject private var authVM = AuthViewModel()
+    @StateObject private var serverConfig = ServerConfig.shared
+    @StateObject private var downloadVM = DownloadViewModel()
     
     public init() {}
     
@@ -12,6 +14,8 @@ public struct ROSSothatLauncherApp: App {
             RootView()
                 .environmentObject(launcherVM)
                 .environmentObject(authVM)
+                .environmentObject(serverConfig)
+                .environmentObject(downloadVM)
                 .preferredColorScheme(.dark)
         }
     }

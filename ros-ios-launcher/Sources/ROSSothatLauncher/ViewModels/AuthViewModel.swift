@@ -3,85 +3,49 @@ import Combine
 
 public class AuthViewModel: ObservableObject {
     @Published public var isAuthenticated: Bool = false
-    @Published public var currentUser: PlayerProfile?
+    @Published public var callsign: String = ""
     @Published public var emailInput: String = ""
-    @Published public var usernameInput: String = ""
-    @Published public var otpInput: String = ""
-    @Published public var isOtpStep: Bool = false
+    @Published public var passwordInput: String = ""
     @Published public var isLoading: Bool = false
+    @Published public var statusMessage: String?
     @Published public var errorMessage: String?
-    @Published public var successMessage: String?
     
-    public init(authenticated: Bool = false) {
-        self.isAuthenticated = authenticated
-        if authenticated {
-            self.currentUser = MockData.samplePlayer
+    public init() {
+        // Load saved session if available
+        if let savedCallsign = UserDefaults.standard.string(forKey: "rossothat_callsign"), !savedCallsign.isEmpty {
+            self.callsign = savedCallsign
+            self.isAuthenticated = true
         }
     }
     
-    public func requestSignInOtp() {
-        guard !emailInput.isEmpty && emailInput.contains("@") else {
-            errorMessage = "Please enter a valid email address."
+    /// Connects to private server authentication endpoint when live.
+    public func authenticate(serverConfig: ServerConfig) {
+        guard !callsign.trimmingCharacters(in: .whitespaces).isEmpty else {
+            errorMessage = "Please enter an operator callsign."
             return
         }
+        
         isLoading = true
         errorMessage = nil
+        statusMessage = "Connecting to \(serverConfig.serverHost):\(serverConfig.serverPort)..."
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-            self.isLoading = false
-            self.isOtpStep = true
-            self.successMessage = "Mock code generated: 123456"
-        }
-    }
-    
-    public func requestRegisterOtp() {
-        guard !usernameInput.isEmpty else {
-            errorMessage = "Please choose a codename."
-            return
-        }
-        guard !emailInput.isEmpty && emailInput.contains("@") else {
-            errorMessage = "Please enter a valid email address."
-            return
-        }
-        isLoading = true
-        errorMessage = nil
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-            self.isLoading = false
-            self.isOtpStep = true
-            self.successMessage = "Mock code generated: 123456"
-        }
-    }
-    
-    public func verifyOtp() {
-        guard otpInput == "123456" || otpInput.count == 6 else {
-            errorMessage = "Invalid verification code. Enter 123456 in mock mode."
-            return
-        }
-        isLoading = true
-        errorMessage = nil
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+        // Architecture placeholder: Once the user's private server backend is deployed,
+        // this will perform a real URLSession POST to serverConfig.apiBaseURL + "/auth/login".
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
             self.isLoading = false
             self.isAuthenticated = true
-            var user = MockData.samplePlayer
-            if !self.emailInput.isEmpty { user.email = self.emailInput }
-            if !self.usernameInput.isEmpty { user.username = self.usernameInput }
-            self.currentUser = user
-            self.isOtpStep = false
-            self.otpInput = ""
-            self.successMessage = nil
+            self.statusMessage = "Authenticated as \(self.callsign)"
+            UserDefaults.standard.set(self.callsign, forKey: "rossothat_callsign")
         }
     }
     
     public func signOut() {
         isAuthenticated = false
-        currentUser = nil
+        callsign = ""
         emailInput = ""
-        usernameInput = ""
-        otpInput = ""
-        isOtpStep = false
+        passwordInput = ""
+        statusMessage = nil
         errorMessage = nil
-        successMessage = nil
+        UserDefaults.standard.removeObject(forKey: "rossothat_callsign")
     }
 }
