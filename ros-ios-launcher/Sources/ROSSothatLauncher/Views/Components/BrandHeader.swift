@@ -29,11 +29,11 @@ public struct BrandHeader: View {
                         Text("ROS")
                             .font(.system(size: 18, weight: .black, design: .default))
                             .foregroundColor(TacticalTheme.textPrimary)
-                        Text("SOTHAT")
+                        Text("SOTHATT")
                             .font(.system(size: 18, weight: .black, design: .default))
                             .foregroundColor(TacticalTheme.gold)
                     }
-                    Text("LEGACY PRIVATE SERVER")
+                    Text("RULES OF SURVIVAL LEGACY")
                         .font(.system(size: 8, weight: .bold))
                         .tracking(1.5)
                         .foregroundColor(TacticalTheme.textMuted)

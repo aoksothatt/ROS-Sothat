@@ -12,7 +12,7 @@ public class AuthViewModel: ObservableObject {
     @Published public var errorMessage: String?
     @Published public var successMessage: String?
     
-    public init(authenticated: Bool = true) {
+    public init(authenticated: Bool = false) {
         self.isAuthenticated = authenticated
         if authenticated {
             self.currentUser = MockData.samplePlayer

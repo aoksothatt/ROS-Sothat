@@ -77,61 +77,17 @@ public struct GameDownloadScreen: View {
                                 
                                 Divider().background(TacticalTheme.border)
                                 
-                                // Progress or Action
-                                switch downloadVM.downloadState {
-                                case .notStarted:
-                                    PrimaryButton("DOWNLOAD CLIENT PACKAGE", icon: "📥") {
-                                        downloadVM.startSimulatedDownload()
-                                    }
-                                    
-                                case .downloading(let progress, _):
-                                    VStack(spacing: 8) {
-                                        HStack {
-                                            Text("DOWNLOADING ASSETS...")
-                                                .font(.system(size: 11, weight: .bold))
-                                                .foregroundColor(TacticalTheme.gold)
-                                            Spacer()
-                                            Text(downloadVM.speedText)
-                                                .font(.system(size: 11, design: .monospaced))
-                                                .foregroundColor(TacticalTheme.textSecondary)
-                                        }
-                                        
-                                        ProgressView(value: progress)
-                                            .progressViewStyle(LinearProgressViewStyle(tint: TacticalTheme.gold))
-                                            .scaleEffect(x: 1, y: 2, anchor: .center)
-                                    }
-                                    
-                                case .verifyingChecksum:
-                                    HStack {
-                                        ProgressView()
-                                            .progressViewStyle(CircularProgressViewStyle(tint: TacticalTheme.gold))
-                                        Text("VERIFYING SHA-256 CHECKSUM INTEGRITY...")
-                                            .font(.system(size: 11, weight: .bold))
-                                            .foregroundColor(TacticalTheme.textPrimary)
-                                    }
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 8)
-                                    
-                                case .verifiedReady:
-                                    VStack(spacing: 8) {
-                                        HStack {
-                                            Text("✓")
-                                                .foregroundColor(TacticalTheme.success)
-                                                .font(.system(size: 16, weight: .bold))
-                                            Text("PACKAGE VERIFIED & READY FOR SIDELOADING")
-                                                .font(.system(size: 11, weight: .bold))
-                                                .foregroundColor(TacticalTheme.success)
-                                        }
-                                        
-                                        SecondaryButton("OPEN INSTALLATION GUIDE", icon: "📖") {
-                                            launcherVM.navigateTo(.installationGuide)
+                                // Real iOS Download Action
+                                VStack(alignment: .leading, spacing: 10) {
+                                    PrimaryButton("DOWNLOAD CLIENT IPA IN SAFARI", icon: "🌐") {
+                                        if let url = URL(string: "https://rossothat.com/download") {
+                                            UIApplication.shared.open(url, options: [:], completionHandler: nil)
                                         }
                                     }
                                     
-                                case .error(let msg):
-                                    Text(msg)
-                                        .font(.system(size: 12))
-                                        .foregroundColor(TacticalTheme.danger)
+                                    Text("Note: Under iOS sandboxing, the package will download to Safari / Files app. Use Sideloadly or AltStore to install onto your device.")
+                                        .font(.system(size: 10))
+                                        .foregroundColor(TacticalTheme.textMuted)
                                 }
                             }
                         }

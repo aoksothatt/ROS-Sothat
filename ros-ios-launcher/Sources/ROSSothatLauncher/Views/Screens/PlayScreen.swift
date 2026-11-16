@@ -5,10 +5,6 @@ public struct PlayScreen: View {
     @EnvironmentObject public var authVM: AuthViewModel
     
     @State private var selectedMode: String = "SOLO SURVIVAL"
-    @State private var isLaunching: Bool = false
-    @State private var launchStepText: String = "READY FOR COMBAT"
-    @State private var launchProgress: Double = 0.0
-    @State private var isSessionActive: Bool = false
     
     private let matchModes = ["SOLO SURVIVAL", "DUO SQUAD", "CUSTOM PRIVATE ROOM"]
     
@@ -146,48 +142,34 @@ public struct PlayScreen: View {
                         }
                         
                         // Launch Action Area
-                        VStack(spacing: 12) {
-                            if isLaunching {
-                                VStack(spacing: 8) {
-                                    Text(launchStepText)
-                                        .font(.system(size: 11, weight: .bold, design: .monospaced))
+                        VStack(spacing: 14) {
+                            PrimaryButton("OPEN GAME CLIENT ('rosmobile://')", icon: "🚀") {
+                                if let url = URL(string: "rosmobile://") {
+                                    UIApplication.shared.open(url, options: [:], completionHandler: nil)
+                                }
+                            }
+                            .padding(.horizontal, 16)
+                            
+                            TacticalCard {
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text("ℹ️ LAUNCHING ON IPHONE")
+                                        .font(.system(size: 11, weight: .black))
                                         .foregroundColor(TacticalTheme.gold)
                                     
-                                    ProgressView(value: launchProgress)
-                                        .progressViewStyle(LinearProgressViewStyle(tint: TacticalTheme.gold))
-                                        .scaleEffect(x: 1, y: 2, anchor: .center)
+                                    Text("If Rules of Survival Legacy has been sideloaded, tap the button above to launch via the registered 'rosmobile://' scheme, or launch 'RoS Legacy' directly from your iPhone Home Screen.")
+                                        .font(.system(size: 11))
+                                        .foregroundColor(TacticalTheme.textSecondary)
+                                    
+                                    Text("iOS sandboxing does not allow apps to silently run other apps without a registered custom URL scheme.")
+                                        .font(.system(size: 10))
+                                        .foregroundColor(TacticalTheme.textMuted)
                                 }
-                                .padding(16)
-                                .background(TacticalTheme.bgCard)
-                                .cornerRadius(6)
-                                .padding(.horizontal, 16)
-                            } else if isSessionActive {
-                                TacticalCard(isHighlighted: true) {
-                                    VStack(spacing: 10) {
-                                        Text("SESSION HANDSHAKE COMPLETE ✓")
-                                            .font(.system(size: 12, weight: .black))
-                                            .foregroundColor(TacticalTheme.success)
-                                        Text("Symmetric 56-byte Blowfish channel established on 127.0.0.1:20014. Launch original game client on your device to enter battle.")
-                                            .font(.system(size: 11))
-                                            .foregroundColor(TacticalTheme.textSecondary)
-                                            .multilineTextAlignment(.center)
-                                        
-                                        SecondaryButton("RESET SESSION") {
-                                            isSessionActive = false
-                                        }
-                                    }
-                                }
-                                .padding(.horizontal, 16)
-                            } else {
-                                PrimaryButton("INITIALIZE & LAUNCH SESSION", icon: "🚀") {
-                                    simulateLaunch()
-                                }
-                                .padding(.horizontal, 16)
                             }
+                            .padding(.horizontal, 16)
                         }
                     }
                     .padding(.top, 14)
-                    .padding(.bottom, 80)
+                    .padding(.bottom, 40)
                 }
             }
         }
@@ -198,29 +180,6 @@ public struct PlayScreen: View {
         case "SOLO SURVIVAL": return "👤"
         case "DUO SQUAD": return "👥"
         default: return "🏛️"
-        }
-    }
-    
-    private func simulateLaunch() {
-        isLaunching = true
-        launchProgress = 0.1
-        launchStepText = "CONNECTING TO LOGINAPP GATEWAY..."
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            self.launchProgress = 0.4
-            self.launchStepText = "AUTHENTICATING 56-BYTE SESSION TOKEN..."
-        }
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-            self.launchProgress = 0.75
-            self.launchStepText = "DEMUXING MERCURY BASEAPP UDP HANDSHAKE..."
-        }
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.6) {
-            self.launchProgress = 1.0
-            self.isLaunching = false
-            self.isSessionActive = true
-            self.launchStepText = "READY"
         }
     }
 }
