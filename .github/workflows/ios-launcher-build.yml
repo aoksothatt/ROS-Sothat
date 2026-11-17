@@ -122,7 +122,14 @@ jobs:
           echo "=== Final Artifacts ==="
           ls -lh
 
-      - name: Upload Unsigned IPA Artifact
+      - name: Upload Unsigned IPA Artifact (ROS-Sothatt-Launcher-iOS)
+        uses: actions/upload-artifact@v4
+        with:
+          name: ROS-Sothatt-Launcher-iOS
+          path: build/artifacts/ROSSothatLauncher-unsigned.ipa
+          retention-days: 14
+
+      - name: Upload Unsigned IPA Artifact (Legacy Name)
         uses: actions/upload-artifact@v4
         with:
           name: ROSSothatLauncher-unsigned-ipa

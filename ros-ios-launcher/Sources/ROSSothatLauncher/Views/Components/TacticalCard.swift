@@ -15,9 +15,9 @@ public struct TacticalCard<Content: View>: View {
         }
         .padding(14)
         .background(TacticalTheme.bgCard)
-        .cornerRadius(4)
+        .cornerRadius(6)
         .overlay(
-            RoundedRectangle(cornerRadius: 4)
+            RoundedRectangle(cornerRadius: 6)
                 .stroke(isHighlighted ? TacticalTheme.borderGold : TacticalTheme.border, lineWidth: 1)
         )
     }

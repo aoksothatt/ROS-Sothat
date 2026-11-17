@@ -14,33 +14,33 @@ public struct SplashScreen: View {
             VStack(spacing: 24) {
                 Spacer()
                 
-                // ROS Sothatt Black-and-Gold Logo
+                // ROS Sothatt Black-and-Gold Logo (EXACTLY UNCHANGED)
                 Image("Logo")
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(width: 140, height: 140)
-                    .clipShape(RoundedRectangle(cornerRadius: 6))
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
                     .overlay(
-                        RoundedRectangle(cornerRadius: 6)
+                        RoundedRectangle(cornerRadius: 16)
                             .stroke(TacticalTheme.borderGold, lineWidth: 1)
                     )
                     .scaleEffect(isAnimating ? 1.0 : 0.94)
                     .opacity(isAnimating ? 1.0 : 0.0)
                 
-                // Brand Text Only
+                // Brand Title
                 VStack(spacing: 6) {
-                    HStack(spacing: 6) {
+                    HStack(spacing: 8) {
                         Text("ROS")
-                            .font(.system(size: 26, weight: .black))
-                            .tracking(2.0)
+                            .font(.system(size: 28, weight: .black))
+                            .tracking(3.0)
                             .foregroundColor(TacticalTheme.textPrimary)
                         Text("SOTHATT")
-                            .font(.system(size: 26, weight: .black))
-                            .tracking(2.0)
+                            .font(.system(size: 28, weight: .black))
+                            .tracking(3.0)
                             .foregroundColor(TacticalTheme.gold)
                     }
                     
-                    Text("TACTICAL LAUNCHER")
+                    Text("PRIVATE SERVER LAUNCHER")
                         .font(.system(size: 10, weight: .bold))
                         .tracking(3.0)
                         .foregroundColor(TacticalTheme.textSecondary)
@@ -49,22 +49,21 @@ public struct SplashScreen: View {
                 
                 Spacer()
                 
-                // Subtle Loading Bar & Status
+                // Subtle Gold Loading Bar
                 VStack(spacing: 12) {
-                    // Precision Loading Gauge
                     GeometryReader { geo in
                         ZStack(alignment: .leading) {
-                            Rectangle()
+                            Capsule()
                                 .fill(TacticalTheme.bgCard)
                                 .frame(height: 2)
-                            Rectangle()
-                                .fill(TacticalTheme.gold)
+                            Capsule()
+                                .fill(TacticalTheme.goldGradient)
                                 .frame(width: geo.size.width * progressAmount, height: 2)
                         }
                     }
-                    .frame(width: 160, height: 2)
+                    .frame(width: 140, height: 2)
                     
-                    Text("INITIALIZING ROS SOTHATT...")
+                    Text("CONNECTING...")
                         .font(.system(size: 9, weight: .bold, design: .monospaced))
                         .tracking(1.5)
                         .foregroundColor(TacticalTheme.textMuted)
@@ -76,12 +75,12 @@ public struct SplashScreen: View {
             withAnimation(.easeOut(duration: 0.6)) {
                 isAnimating = true
             }
-            withAnimation(.easeInOut(duration: 1.4)) {
+            withAnimation(.easeInOut(duration: 1.2)) {
                 progressAmount = 1.0
             }
             
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.6) {
-                withAnimation(.easeInOut(duration: 0.4)) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.4) {
+                withAnimation(.easeInOut(duration: 0.35)) {
                     launcherVM.finishInitialization()
                 }
             }

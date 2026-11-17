@@ -1,24 +1,37 @@
 import SwiftUI
 
 public enum TacticalTheme {
-    // Backgrounds - deep tactical charcoal & matte black
-    public static let bgPrimary = Color(hex: "080B10")
-    public static let bgSecondary = Color(hex: "0D1219")
+    // Backgrounds - luxury deep black & charcoal surfaces
+    public static let bgPrimary = Color(hex: "06080B")
+    public static let bgSecondary = Color(hex: "0D1118")
     public static let bgCard = Color(hex: "121822")
     public static let bgCardHover = Color(hex: "17202D")
     
-    // Accents - refined military gold
+    // Accents - refined luxury metallic gold
     public static let gold = Color(hex: "D7A84B")
-    public static let goldLight = Color(hex: "E5B85C")
-    public static let goldDark = Color(hex: "B88A32")
+    public static let goldLight = Color(hex: "F3CF7A")
+    public static let goldDark = Color(hex: "A87E26")
     public static let goldMuted = Color(hex: "7A6332")
     public static let red = Color(hex: "B94B3C")
     public static let redHover = Color(hex: "CB5A4A")
     
-    // Borders - precise hairline borders
+    // Gradients
+    public static let goldGradient = LinearGradient(
+        colors: [Color(hex: "F7D77E"), Color(hex: "D7A84B"), Color(hex: "A87E26")],
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
+    )
+    
+    public static let cardGradient = LinearGradient(
+        colors: [Color(hex: "141A24"), Color(hex: "0D1219")],
+        startPoint: .top,
+        endPoint: .bottom
+    )
+    
+    // Borders - precise hairline gold & dark borders
     public static let border = Color(hex: "1E2836")
     public static let borderLight = Color(hex: "2A384A")
-    public static let borderGold = Color(hex: "D7A84B").opacity(0.35)
+    public static let borderGold = Color(hex: "D7A84B").opacity(0.32)
     public static let borderGoldSolid = Color(hex: "D7A84B")
     
     // Text
