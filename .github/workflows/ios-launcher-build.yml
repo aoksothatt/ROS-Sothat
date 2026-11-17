@@ -129,6 +129,13 @@ jobs:
           path: build/artifacts/ROSSothatLauncher-unsigned.ipa
           retention-days: 14
 
+      - name: Upload Versioned Unsigned IPA Artifact (Build 102)
+        uses: actions/upload-artifact@v4
+        with:
+          name: ROSSothatLauncher-v1.0.0-b102-unsigned
+          path: build/artifacts/ROSSothatLauncher-unsigned.ipa
+          retention-days: 14
+
       - name: Upload Unsigned IPA Artifact (Legacy Name)
         uses: actions/upload-artifact@v4
         with:

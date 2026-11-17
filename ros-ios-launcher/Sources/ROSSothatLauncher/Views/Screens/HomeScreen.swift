@@ -4,17 +4,16 @@ public struct HomeScreen: View {
     @EnvironmentObject public var serverConfig: ServerConfig
     @EnvironmentObject public var downloadVM: DownloadViewModel
     @EnvironmentObject public var authVM: AuthViewModel
-    
+
     @State private var showSettings: Bool = false
-    @State private var showInstallSheet: Bool = false
-    @State private var showShareSheet: Bool = false
-    
+    @State private var showInstallGuide: Bool = false
+
     public init() {}
-    
+
     public var body: some View {
         ZStack {
             TacticalTheme.bgPrimary.ignoresSafeArea()
-            
+
             // Subtle ambient gold radial glow centered behind hero
             RadialGradient(
                 gradient: Gradient(colors: [
@@ -26,20 +25,20 @@ public struct HomeScreen: View {
                 endRadius: 260
             )
             .ignoresSafeArea()
-            
+
             VStack(spacing: 0) {
-                // MARK: - 1. Top Bar: Connection Status & Settings Button
+                // MARK: - 1. Top Bar: Dynamic Connection Status & Settings Button
                 HStack {
-                    // Small Private Server Connection Status Capsule
+                    // Dynamic Private Server Health Status Capsule
                     HStack(spacing: 6) {
                         Circle()
-                            .fill(TacticalTheme.success)
+                            .fill(statusDotColor)
                             .frame(width: 6, height: 6)
-                        
-                        Text("SERVER ONLINE")
+
+                        Text(serverConfig.healthStatus.displayText)
                             .font(.system(size: 9, weight: .bold, design: .monospaced))
                             .tracking(1.2)
-                            .foregroundColor(TacticalTheme.gold)
+                            .foregroundColor(statusTextColor)
                     }
                     .padding(.horizontal, 10)
                     .padding(.vertical, 5)
@@ -49,9 +48,9 @@ public struct HomeScreen: View {
                         RoundedRectangle(cornerRadius: 12)
                             .stroke(TacticalTheme.borderGold, lineWidth: 0.8)
                     )
-                    
+
                     Spacer()
-                    
+
                     // Small Settings Button
                     Button(action: { showSettings = true }) {
                         ZStack {
@@ -62,7 +61,7 @@ public struct HomeScreen: View {
                                     Circle()
                                         .stroke(TacticalTheme.borderGold, lineWidth: 0.8)
                                 )
-                            
+
                             Image(systemName: "gearshape.fill")
                                 .font(.system(size: 14, weight: .medium))
                                 .foregroundColor(TacticalTheme.gold)
@@ -73,9 +72,9 @@ public struct HomeScreen: View {
                 }
                 .padding(.horizontal, 24)
                 .padding(.top, 14)
-                
+
                 Spacer(minLength: 20)
-                
+
                 // MARK: - 2. Center Hero: Logo & Minimal Title
                 VStack(spacing: 18) {
                     // Existing ROS Sothatt launcher logo
@@ -89,7 +88,7 @@ public struct HomeScreen: View {
                                 .stroke(TacticalTheme.borderGold, lineWidth: 1)
                         )
                         .shadow(color: Color.black.opacity(0.6), radius: 14, x: 0, y: 8)
-                    
+
                     // Minimal Game Identity / Title Area
                     VStack(spacing: 6) {
                         HStack(spacing: 8) {
@@ -97,18 +96,18 @@ public struct HomeScreen: View {
                                 .font(.system(size: 28, weight: .black))
                                 .tracking(3.0)
                                 .foregroundColor(TacticalTheme.textPrimary)
-                            
+
                             Text("SOTHATT")
                                 .font(.system(size: 28, weight: .black))
                                 .tracking(3.0)
                                 .foregroundColor(TacticalTheme.gold)
                         }
-                        
+
                         Text("PRIVATE SERVER LAUNCHER")
                             .font(.system(size: 10, weight: .bold))
                             .tracking(3.0)
                             .foregroundColor(TacticalTheme.textSecondary)
-                        
+
                         // Subtle gold separator accent
                         Rectangle()
                             .fill(TacticalTheme.goldGradient)
@@ -117,23 +116,17 @@ public struct HomeScreen: View {
                             .padding(.top, 4)
                     }
                 }
-                
+
                 Spacer(minLength: 30)
-                
-                // MARK: - 3. Prominent Gold PLAY Button
+
+                // MARK: - 3. Prominent Gold Action Button (PLAY / HOW TO INSTALL)
                 VStack(spacing: 12) {
                     Button(action: handlePlayAction) {
                         HStack(spacing: 10) {
-                            if case .downloading = downloadVM.status {
-                                ProgressView()
-                                    .progressViewStyle(CircularProgressViewStyle(tint: TacticalTheme.bgPrimary))
-                                    .scaleEffect(0.9)
-                            } else {
-                                Image(systemName: "play.fill")
-                                    .font(.system(size: 16, weight: .black))
-                                    .foregroundColor(TacticalTheme.bgPrimary)
-                            }
-                            
+                            Image(systemName: playButtonIcon)
+                                .font(.system(size: 16, weight: .black))
+                                .foregroundColor(TacticalTheme.bgPrimary)
+
                             Text(playButtonTitle)
                                 .font(.system(size: 16, weight: .black))
                                 .tracking(2.5)
@@ -150,40 +143,25 @@ public struct HomeScreen: View {
                         .shadow(color: TacticalTheme.gold.opacity(0.35), radius: 14, x: 0, y: 6)
                     }
                     .buttonStyle(ScaleButtonStyle())
-                    
-                    // Restrained progress display (only during active download)
-                    if case .downloading(let progress, _, _, let speed) = downloadVM.status {
-                        VStack(spacing: 6) {
-                            GeometryReader { geo in
-                                ZStack(alignment: .leading) {
-                                    Capsule()
-                                        .fill(TacticalTheme.bgCard)
-                                    Capsule()
-                                        .fill(TacticalTheme.goldGradient)
-                                        .frame(width: geo.size.width * CGFloat(progress))
-                                }
-                            }
-                            .frame(height: 4)
-                            
-                            HStack {
-                                Text(downloadVM.progressText)
-                                    .font(.system(size: 10, design: .monospaced))
-                                    .foregroundColor(TacticalTheme.textMuted)
-                                Spacer()
-                                Text(speed)
-                                    .font(.system(size: 10, weight: .bold, design: .monospaced))
-                                    .foregroundColor(TacticalTheme.gold)
-                            }
+
+                    // Auxiliary hint when game is not detected
+                    if !downloadVM.isGameInstalled {
+                        HStack(spacing: 4) {
+                            Image(systemName: "exclamationmark.triangle")
+                                .font(.system(size: 10))
+                                .foregroundColor(TacticalTheme.warning)
+                            Text("Original game client required on device")
+                                .font(.system(size: 10, design: .monospaced))
+                                .foregroundColor(TacticalTheme.textMuted)
                         }
                         .padding(.top, 2)
-                        .transition(.opacity)
                     }
                 }
                 .padding(.horizontal, 32)
                 .padding(.bottom, 22)
-                
+
                 // MARK: - 4. Discreet Version Label at Bottom
-                Text("v1.0.0 (Build 101) • ROS Sothatt")
+                Text("v1.0.0 (Build 102) • ROS Sothatt")
                     .font(.system(size: 10, weight: .medium, design: .monospaced))
                     .tracking(1.0)
                     .foregroundColor(TacticalTheme.textMuted)
@@ -196,60 +174,66 @@ public struct HomeScreen: View {
                 .environmentObject(downloadVM)
                 .environmentObject(authVM)
         }
-        .actionSheet(isPresented: $showInstallSheet) {
-            ActionSheet(
-                title: Text("ROS Sothatt Game Package"),
-                message: Text("Game client archive is downloaded. Sideload it using Sideloadly or launch via rosmobile://."),
-                buttons: [
-                    .default(Text("Export Game IPA (Sideloadly / AirDrop)")) {
-                        showShareSheet = true
-                    },
-                    .default(Text("Launch Game (rosmobile://)")) {
-                        downloadVM.launchGame()
-                    },
-                    .cancel(Text("Dismiss"))
-                ]
-            )
-        }
-        .sheet(isPresented: $showShareSheet) {
-            if let localURL = downloadVM.localFileURL {
-                ShareSheet(items: [localURL])
-            }
+        .sheet(isPresented: $showInstallGuide) {
+            InstallationGuideScreen()
+                .environmentObject(downloadVM)
         }
         .onAppear {
+            serverConfig.startPolling()
             downloadVM.checkGameInstallation()
-            downloadVM.checkLocalFile()
+        }
+        .onDisappear {
+            serverConfig.stopPolling()
         }
     }
-    
+
+    // MARK: - Dynamic Status Styles
+
+    private var statusDotColor: Color {
+        switch serverConfig.healthStatus {
+        case .online:
+            return TacticalTheme.success
+        case .connecting:
+            return TacticalTheme.gold
+        case .offline:
+            return Color.red
+        }
+    }
+
+    private var statusTextColor: Color {
+        switch serverConfig.healthStatus {
+        case .online:
+            return TacticalTheme.gold
+        case .connecting:
+            return TacticalTheme.textSecondary
+        case .offline:
+            return Color.red.opacity(0.85)
+        }
+    }
+
     // MARK: - Play Action Logic
+
     private var playButtonTitle: String {
         if downloadVM.isGameInstalled {
             return "PLAY"
-        }
-        switch downloadVM.status {
-        case .completed:
-            return "PLAY"
-        case .downloading:
-            return "DOWNLOADING..."
-        case .connecting:
-            return "CONNECTING..."
-        default:
-            return "PLAY"
+        } else {
+            return "HOW TO INSTALL"
         }
     }
-    
+
+    private var playButtonIcon: String {
+        if downloadVM.isGameInstalled {
+            return "play.fill"
+        } else {
+            return "info.circle.fill"
+        }
+    }
+
     private func handlePlayAction() {
         if downloadVM.isGameInstalled {
             downloadVM.launchGame()
-        } else if case .completed = downloadVM.status {
-            showInstallSheet = true
-        } else if case .downloading = downloadVM.status {
-            showSettings = true
         } else {
-            if let url = serverConfig.downloadURL {
-                downloadVM.startDownload(from: url)
-            }
+            showInstallGuide = true
         }
     }
 }
