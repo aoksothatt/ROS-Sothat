@@ -1,0 +1,196 @@
+name: Build Clean-Room ROS Sothatt Hook Dylib
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-verify:
+    name: Compile & Verify rosauthhook.dylib
+    runs-on: macos-15
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Inspect Environment & Xcode Toolchain
+        run: |
+          set -euo pipefail
+          echo "=== Host Environment ==="
+          sw_vers
+          uname -a
+          uname -m
+
+          echo "=== Xcode & Developer Tools ==="
+          xcode-select -p
+          xcrun --version
+          xcrun -sdk iphoneos clang --version
+
+          echo "=== iPhoneOS SDK Information ==="
+          xcrun -sdk iphoneos --show-sdk-path
+          xcrun -sdk iphoneos --show-sdk-version
+
+      - name: Compile Clean-Room Hook (src/hook)
+        run: |
+          set -euo pipefail
+          cd src/hook
+
+          # Clean any existing artifacts
+          make clean
+
+          # Compile while preserving full stdout and stderr
+          make all 2>&1 | tee build.log
+
+      - name: Binary Forensic Verification
+        run: |
+          set -euo pipefail
+          cd src/hook
+
+          if [ ! -f "rosauthhook.dylib" ]; then
+            echo "ERROR: Compilation failed — rosauthhook.dylib not generated!"
+            exit 1
+          fi
+
+          echo "=== Verification Timestamp ===" > verification.txt
+          date -u +"%Y-%m-%d %H:%M:%S UTC" >> verification.txt
+          echo "" >> verification.txt
+
+          echo "=== 1. Mach-O Architecture ===" >> verification.txt
+          file rosauthhook.dylib >> verification.txt
+          lipo -info rosauthhook.dylib >> verification.txt
+          echo "" >> verification.txt
+
+          echo "=== 2. Mach-O Filetype & Header Flags ===" >> verification.txt
+          otool -hv rosauthhook.dylib >> verification.txt
+          echo "" >> verification.txt
+
+          echo "=== 3. Platform & Minimum iOS Version (LC_BUILD_VERSION) ===" >> verification.txt
+          otool -l rosauthhook.dylib | grep -A 5 "LC_BUILD_VERSION" >> verification.txt || true
+          echo "" >> verification.txt
+
+          echo "=== 4. Install Name (LC_ID_DYLIB) ===" >> verification.txt
+          otool -D rosauthhook.dylib >> verification.txt
+          echo "" >> verification.txt
+
+          echo "=== 5. Dynamic Library Load Commands (LC_LOAD_DYLIB, LC_LOAD_WEAK_DYLIB, LC_REEXPORT_DYLIB, LC_LOAD_UPWARD_DYLIB) ===" >> verification.txt
+          otool -l rosauthhook.dylib | grep -E -A 3 "cmd (LC_LOAD_DYLIB|LC_LOAD_WEAK_DYLIB|LC_REEXPORT_DYLIB|LC_LOAD_UPWARD_DYLIB)" >> verification.txt || true
+          echo "" >> verification.txt
+
+          echo "=== 6. Linked Dynamic Dependencies (otool -L) ===" >> verification.txt
+          otool -L rosauthhook.dylib | tee -a verification.txt
+          echo "" >> verification.txt
+
+          echo "=== 7. Dependency Allowlist & Required Frameworks Verification ===" >> verification.txt
+          # Extract linked dependencies (skip line 1 which is the library's own install name)
+          DEPS=$(otool -L rosauthhook.dylib | tail -n +2 | awk '{print $1}')
+
+          # Check 7.1: Verify strictly mandatory system frameworks and libraries are present
+          # Note: Security.framework is excluded from mandatory list because it is not referenced in clean-room source.
+          # CoreGraphics and QuartzCore are optional/conditional and validated via the closed allowlist in Check 7.2.
+          # Uses line-anchored regex matching to prevent substring false positives.
+          MANDATORY_PATTERNS=(
+            "^/System/Library/Frameworks/Foundation\.framework/Foundation$"
+            "^/System/Library/Frameworks/UIKit\.framework/UIKit$"
+            "^/usr/lib/libobjc\..*dylib$"
+            "^/usr/lib/libSystem\..*dylib$"
+          )
+          MANDATORY_NAMES=(
+            "Foundation.framework"
+            "UIKit.framework"
+            "libobjc"
+            "libSystem"
+          )
+          for i in "${!MANDATORY_PATTERNS[@]}"; do
+            pat="${MANDATORY_PATTERNS[$i]}"
+            name="${MANDATORY_NAMES[$i]}"
+            if echo "$DEPS" | grep -Eq "$pat"; then
+              echo "  [PASS] Mandatory dependency present: $name ($pat)" >> verification.txt
+            else
+              echo "  [FAIL] Missing mandatory dependency: $name ($pat)" >> verification.txt
+              echo "ERROR: Mandatory dependency $name missing from rosauthhook.dylib!"
+              exit 1
+            fi
+          done
+
+          # Check 7.2: Closed allowlist verification of all linked dependencies
+          # Every linked dependency must match an approved Apple iOS system framework or library.
+          # Rejects any unknown path, @rpath, @loader_path, project-local, or third-party dependency.
+          UNEXPECTED_DEPS=0
+          while IFS= read -r dep; do
+            if [ -z "$dep" ]; then continue; fi
+            case "$dep" in
+              /System/Library/Frameworks/Foundation.framework/Foundation|\
+              /System/Library/Frameworks/UIKit.framework/UIKit|\
+              /System/Library/Frameworks/CoreGraphics.framework/CoreGraphics|\
+              /System/Library/Frameworks/QuartzCore.framework/QuartzCore|\
+              /System/Library/Frameworks/CoreFoundation.framework/CoreFoundation|\
+              /System/Library/Frameworks/Security.framework/Security)
+                echo "  [ALLOWED] Approved Apple system framework: $dep" >> verification.txt
+                ;;
+              /usr/lib/libobjc.*dylib|\
+              /usr/lib/libSystem.*dylib|\
+              /usr/lib/libc++.*dylib)
+                echo "  [ALLOWED] Approved Apple system dylib: $dep" >> verification.txt
+                ;;
+              *)
+                echo "  [REJECTED] Unauthorized or unexpected dependency: $dep" >> verification.txt
+                echo "ERROR: Unauthorized dependency detected: $dep"
+                UNEXPECTED_DEPS=$((UNEXPECTED_DEPS + 1))
+                ;;
+            esac
+          done <<< "$DEPS"
+
+          if [ "$UNEXPECTED_DEPS" -gt 0 ]; then
+            echo "ERROR: $UNEXPECTED_DEPS unauthorized dependencies found in rosauthhook.dylib!"
+            exit 1
+          fi
+          echo "  [PASS] All linked dependencies strictly match approved Apple system frameworks." >> verification.txt
+          echo "" >> verification.txt
+
+          echo "=== 8. Exported ABI Symbols (nm -gU) ===" >> verification.txt
+          nm -gU rosauthhook.dylib >> verification.txt
+          echo "" >> verification.txt
+
+          echo "=== 9. Expected Clean-Room Implementation Symbols ===" >> verification.txt
+          for sym in rossothat_hook_initialize rossothat_hook_shutdown rossothat_fnv1a_32 rossothat_stamp_baseapp_handshake SothattLoginVC ROSSothatConfig ROSSothatAuthClient ROSSothatDiscoveryClient; do
+            if nm rosauthhook.dylib | grep -q "$sym"; then
+              echo "  [FOUND] $sym" >> verification.txt
+            else
+              echo "  [MISSING] $sym" >> verification.txt
+            fi
+          done
+          echo "" >> verification.txt
+
+          echo "=== 10. Undefined Symbols Inspection (nm -u / nm -m) ===" >> verification.txt
+          # Technical Note: Apple ld64 enforces link-time symbol satisfaction against linked system stubs (MH_TWOLEVEL).
+          # Undefined symbols are normal and expected in dynamic libraries; they resolve dynamically at runtime via dyld.
+          # Static inspection verifies symbol mapping (from <Framework>), but does NOT prove runtime Objective-C method dispatch
+          # (objc_msgSend), fishhook pointer rebinding (vm_protect), or dyld shared-cache availability on physical iPhone hardware.
+          echo "-- Undefined Symbols List (Resolved by Linked System Libraries at Runtime) --" >> verification.txt
+          nm -u rosauthhook.dylib | tee -a verification.txt
+          echo "" >> verification.txt
+          echo "-- Symbol Resolution Mapping (nm -m undefined) --" >> verification.txt
+          nm -m rosauthhook.dylib | grep "undefined" >> verification.txt || true
+          echo "" >> verification.txt
+
+          echo "=== 11. Cryptographic SHA-256 Checksum ===" >> verification.txt
+          shasum -a 256 rosauthhook.dylib | tee rosauthhook.dylib.sha256 >> verification.txt
+          echo "" >> verification.txt
+
+          cat verification.txt
+
+      - name: Upload Dynamic Library & Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: rosauthhook-dylib-arm64
+          path: |
+            src/hook/rosauthhook.dylib
+            src/hook/build.log
+            src/hook/verification.txt
+            src/hook/rosauthhook.dylib.sha256
+          retention-days: 14
