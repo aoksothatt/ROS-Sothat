@@ -29,12 +29,17 @@
 #include <string.h>
 #include <sys/mman.h>
 #include <sys/types.h>
+#include <unistd.h>
 #include <mach/mach.h>
 #include <mach/vm_map.h>
 #include <mach/vm_region.h>
 #include <mach-o/dyld.h>
 #include <mach-o/loader.h>
 #include <mach-o/nlist.h>
+
+#ifndef STDERR_FILENO
+#define STDERR_FILENO 2
+#endif
 
 #ifdef __LP64__
 typedef struct mach_header_64 mach_header_t;
@@ -81,11 +86,25 @@ static int prepend_rebindings(struct rebindings_entry **head,
     return 0;
 }
 
-static vm_prot_t get_protection(void *sectionStart) {
+static bool get_protection(void *sectionStart,
+                           vm_address_t aligned_addr,
+                           vm_size_t aligned_size,
+                           vm_prot_t *protection) {
+    if (!sectionStart || !protection || aligned_size == 0) {
+        return false;
+    }
+    if (aligned_addr + aligned_size < aligned_addr) {
+        return false;
+    }
+    vm_address_t sec_addr = (vm_address_t)sectionStart;
+    if (sec_addr < aligned_addr || sec_addr >= (aligned_addr + aligned_size)) {
+        return false;
+    }
+
     mach_port_t task = mach_task_self();
     vm_size_t size = 0;
-    vm_address_t address = (vm_address_t)sectionStart;
-    memory_object_name_t object;
+    vm_address_t address = aligned_addr;
+    mach_port_t object = MACH_PORT_NULL;
 #if __LP64__
     mach_msg_type_number_t count = VM_REGION_BASIC_INFO_COUNT_64;
     vm_region_basic_info_data_64_t info;
@@ -97,11 +116,23 @@ static vm_prot_t get_protection(void *sectionStart) {
     kern_return_t info_ret = vm_region(
         task, &address, &size, VM_REGION_BASIC_INFO, (vm_region_info_t)&info, &count, &object);
 #endif
-    if (info_ret == KERN_SUCCESS) {
-        return info.protection;
-    } else {
-        return VM_PROT_READ;
+    if (object != MACH_PORT_NULL && object != MACH_PORT_DEAD) {
+        mach_port_deallocate(task, object);
     }
+    if (info_ret != KERN_SUCCESS) {
+        return false;
+    }
+    if (address > aligned_addr) {
+        return false;
+    }
+    if ((address + size) < address) {
+        return false;
+    }
+    if ((aligned_addr + aligned_size) > (address + size)) {
+        return false;
+    }
+    *protection = info.protection;
+    return true;
 }
 
 static void perform_rebinding_with_section(struct rebindings_entry *rebindings,
@@ -110,13 +141,56 @@ static void perform_rebinding_with_section(struct rebindings_entry *rebindings,
                                           nlist_t *symtab,
                                           char *strtab,
                                           uint32_t *indirect_symtab) {
+    if (!section || section->size == 0) {
+        return;
+    }
     const bool isDataConst = strcmp(section->segname, SEG_DATA_CONST) == 0;
     uint32_t *indirect_symbol_indices = indirect_symtab + section->reserved1;
-    void **indirect_symbol_bindings = (void **)((uintptr_t)slide + section->addr);
+
+    uintptr_t binding_addr = (uintptr_t)slide + (uintptr_t)section->addr;
+    if (slide >= 0) {
+        if (binding_addr < (uintptr_t)slide) {
+            return;
+        }
+    } else {
+        if (binding_addr > (uintptr_t)section->addr) {
+            return;
+        }
+    }
+    if (binding_addr == 0) {
+        return;
+    }
+
+    void **indirect_symbol_bindings = (void **)binding_addr;
+    vm_address_t raw_addr = (vm_address_t)binding_addr;
+
+    vm_size_t page_size = vm_page_size;
+    if (page_size == 0 || (page_size & (page_size - 1)) != 0) {
+        page_size = 16384;
+    }
+    vm_size_t page_mask = page_size - 1;
+
+    if (raw_addr + section->size < raw_addr ||
+        (raw_addr + section->size + page_mask) < (raw_addr + section->size)) {
+        return;
+    }
+
     vm_prot_t oldProtection = VM_PROT_READ;
+    vm_address_t aligned_addr = raw_addr & ~page_mask;
+    vm_size_t aligned_size = (((raw_addr + section->size + page_mask) & ~page_mask) - aligned_addr);
+
     if (isDataConst) {
-        oldProtection = get_protection(rebindings);
-        mprotect(indirect_symbol_bindings, section->size, PROT_READ | PROT_WRITE);
+        if (!get_protection(indirect_symbol_bindings, aligned_addr, aligned_size, &oldProtection)) {
+            return;
+        }
+        kern_return_t err = vm_protect(mach_task_self(),
+                                       aligned_addr,
+                                       aligned_size,
+                                       false,
+                                       VM_PROT_READ | VM_PROT_WRITE | VM_PROT_COPY);
+        if (err != KERN_SUCCESS) {
+            return;
+        }
     }
     for (uint i = 0; i < section->size / sizeof(void *); i++) {
         uint32_t symtab_index = indirect_symbol_indices[i];
@@ -144,17 +218,15 @@ static void perform_rebinding_with_section(struct rebindings_entry *rebindings,
     symbol_loop:;
     }
     if (isDataConst) {
-        int protection = 0;
-        if (oldProtection & VM_PROT_READ) {
-            protection |= PROT_READ;
+        kern_return_t rest_err = vm_protect(mach_task_self(),
+                                            aligned_addr,
+                                            aligned_size,
+                                            false,
+                                            oldProtection);
+        if (rest_err != KERN_SUCCESS) {
+            static const char warn_msg[] = "[fishhook] Warning: failed to restore memory protection\n";
+            write(STDERR_FILENO, warn_msg, sizeof(warn_msg) - 1);
         }
-        if (oldProtection & VM_PROT_WRITE) {
-            protection |= PROT_WRITE;
-        }
-        if (oldProtection & VM_PROT_EXECUTE) {
-            protection |= PROT_EXEC;
-        }
-        mprotect(indirect_symbol_bindings, section->size, protection);
     }
 }
 
@@ -216,6 +288,11 @@ static void rebind_symbols_for_image(struct rebindings_entry *rebindings,
     }
 }
 
+static void _rebind_symbols_for_image(const struct mach_header *header,
+                                      intptr_t slide) {
+    rebind_symbols_for_image(_rebindings_head, header, slide);
+}
+
 int rebind_symbols_image(void *header,
                          intptr_t slide,
                          struct rebinding rebindings[],
@@ -238,11 +315,11 @@ int rebind_symbols(struct rebinding rebindings[], size_t rebindings_nel) {
         return retval;
     }
     if (!_rebindings_head->next) {
-        _dyld_register_func_for_add_image((void (*)(const struct mach_header *, intptr_t))rebind_symbols_for_image);
+        _dyld_register_func_for_add_image(_rebind_symbols_for_image);
     } else {
         uint32_t c = _dyld_image_count();
         for (uint32_t i = 0; i < c; i++) {
-            rebind_symbols_for_image(_rebindings_head, _dyld_get_image_header(i), _dyld_get_image_vmaddr_slide(i));
+            _rebind_symbols_for_image(_dyld_get_image_header(i), _dyld_get_image_vmaddr_slide(i));
         }
     }
     return retval;
