@@ -59,6 +59,10 @@ typedef struct nlist nlist_t;
 #define SEG_DATA_CONST "__DATA_CONST"
 #endif
 
+#ifndef MH_DYLIB_IN_CACHE
+#define MH_DYLIB_IN_CACHE 0x80000000
+#endif
+
 struct rebindings_entry {
     struct rebinding *rebindings;
     size_t rebindings_nel;
@@ -140,8 +144,17 @@ static void perform_rebinding_with_section(struct rebindings_entry *rebindings,
                                           intptr_t slide,
                                           nlist_t *symtab,
                                           char *strtab,
-                                          uint32_t *indirect_symtab) {
+                                          uint32_t *indirect_symtab,
+                                          uint32_t nsyms,
+                                          uint32_t strsize,
+                                          uint32_t nindirectsyms) {
     if (!section || section->size == 0) {
+        return;
+    }
+    if (!symtab || !strtab || !indirect_symtab || nsyms == 0 || strsize == 0 || nindirectsyms == 0) {
+        return;
+    }
+    if (section->reserved1 >= nindirectsyms) {
         return;
     }
     const bool isDataConst = strcmp(section->segname, SEG_DATA_CONST) == 0;
@@ -192,13 +205,24 @@ static void perform_rebinding_with_section(struct rebindings_entry *rebindings,
             return;
         }
     }
-    for (uint i = 0; i < section->size / sizeof(void *); i++) {
+    uint32_t entries = (uint32_t)(section->size / sizeof(void *));
+    uint32_t available_indices = nindirectsyms - section->reserved1;
+    if (entries > available_indices) {
+        entries = available_indices;
+    }
+    for (uint i = 0; i < entries; i++) {
         uint32_t symtab_index = indirect_symbol_indices[i];
         if (symtab_index == INDIRECT_SYMBOL_ABS || symtab_index == INDIRECT_SYMBOL_LOCAL ||
             symtab_index == (INDIRECT_SYMBOL_LOCAL | INDIRECT_SYMBOL_ABS)) {
             continue;
         }
+        if (symtab_index >= nsyms) {
+            continue;
+        }
         uint32_t strtab_offset = symtab[symtab_index].n_un.n_strx;
+        if (strtab_offset >= strsize || (strsize - strtab_offset) < 2) {
+            continue;
+        }
         char *symbol_name = strtab + strtab_offset;
         bool symbol_name_longer_than_one = symbol_name[0] && symbol_name[1];
         struct rebindings_entry *cur = rebindings;
@@ -233,6 +257,20 @@ static void perform_rebinding_with_section(struct rebindings_entry *rebindings,
 static void rebind_symbols_for_image(struct rebindings_entry *rebindings,
                                      const struct mach_header *header,
                                      intptr_t slide) {
+    if (!header) {
+        return;
+    }
+    // Only process supported Mach-O image types (MH_EXECUTE and MH_DYLIB)
+    if (header->filetype != MH_EXECUTE && header->filetype != MH_DYLIB) {
+        return;
+    }
+    // Skip dyld shared cache images: system dynamic libraries inside the shared cache
+    // have unified linkedit segments that cannot be parsed via local segment file offsets,
+    // and system dylib symbol tables must not be rebound.
+    if (header->flags & MH_DYLIB_IN_CACHE) {
+        return;
+    }
+
     Dl_info info;
     if (dladdr(header, &info) == 0) {
         return;
@@ -278,10 +316,12 @@ static void rebind_symbols_for_image(struct rebindings_entry *rebindings,
             for (uint j = 0; j < cur_seg_cmd->nsects; j++) {
                 section_t *sect = (section_t *)(cur + sizeof(segment_command_t)) + j;
                 if ((sect->flags & SECTION_TYPE) == S_LAZY_SYMBOL_POINTERS) {
-                    perform_rebinding_with_section(rebindings, sect, slide, symtab, strtab, indirect_symtab);
+                    perform_rebinding_with_section(rebindings, sect, slide, symtab, strtab, indirect_symtab,
+                                                  symtab_cmd->nsyms, symtab_cmd->strsize, dysymtab_cmd->nindirectsyms);
                 }
                 if ((sect->flags & SECTION_TYPE) == S_NON_LAZY_SYMBOL_POINTERS) {
-                    perform_rebinding_with_section(rebindings, sect, slide, symtab, strtab, indirect_symtab);
+                    perform_rebinding_with_section(rebindings, sect, slide, symtab, strtab, indirect_symtab,
+                                                  symtab_cmd->nsyms, symtab_cmd->strsize, dysymtab_cmd->nindirectsyms);
                 }
             }
         }
