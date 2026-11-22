@@ -86,8 +86,8 @@ jobs:
           echo "" >> verification.txt
 
           echo "=== 7. Dependency Allowlist & Required Frameworks Verification ===" >> verification.txt
-          # Extract linked dependencies (skip line 1 which is the library's own install name)
-          DEPS=$(otool -L rosauthhook.dylib | tail -n +2 | awk '{print $1}')
+          # Extract linked dependencies (skip line 1 header and exclude library's own install name)
+          DEPS=$(otool -L rosauthhook.dylib | tail -n +2 | grep -v "@executable_path/rosauthhook.dylib" | awk '{print $1}')
 
           # Check 7.1: Verify strictly mandatory system frameworks and libraries are present
           # Note: Security.framework is excluded from mandatory list because it is not referenced in clean-room source.
