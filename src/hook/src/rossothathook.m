@@ -10,6 +10,7 @@
 #import "baseapp_hook.h"
 #import "logging_manager.h"
 #import "SothattLoginVC.h"
+#import "session_manager.h"
 #import <objc/runtime.h>
 #import <UIKit/UIKit.h>
 
