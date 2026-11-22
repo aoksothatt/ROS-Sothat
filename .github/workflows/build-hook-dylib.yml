@@ -44,7 +44,7 @@ jobs:
           make clean
 
           # Compile while preserving full stdout and stderr
-          make all 2>&1 | tee build.log
+          make CC="xcrun -sdk iphoneos clang" all 2>&1 | tee build.log
 
       - name: Binary Forensic Verification
         run: |

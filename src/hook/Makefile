@@ -1,12 +1,16 @@
 # ROS Sothatt — Clean-Room iOS Hook Makefile
 # Target: Mach-O ARM64 Dynamic Library (rosauthhook.dylib)
 
-CC ?= xcrun -sdk iphoneos clang
-ARCH ?= arm64
-MIN_IOS ?= 16.0
+CC = xcrun -sdk iphoneos clang
+ARCH = arm64
+MIN_IOS = 16.0
+ISYSROOT = $(shell xcrun -sdk iphoneos --show-sdk-path 2>/dev/null)
 
-CFLAGS = -arch $(ARCH) \
-         -miphoneos-version-min=$(MIN_IOS) \
+COMMON_FLAGS = -arch $(ARCH) \
+               -miphoneos-version-min=$(MIN_IOS) \
+               -isysroot $(ISYSROOT)
+
+CFLAGS = $(COMMON_FLAGS) \
          -O2 \
          -fobjc-arc \
          -Wall \
@@ -15,8 +19,6 @@ CFLAGS = -arch $(ARCH) \
          -fvisibility=hidden
 
 LDFLAGS = -shared \
-          -arch $(ARCH) \
-          -miphoneos-version-min=$(MIN_IOS) \
           -install_name @executable_path/rosauthhook.dylib \
           -framework Foundation \
           -framework UIKit \
