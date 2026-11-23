@@ -32,11 +32,12 @@
 }
 
 - (void)createSession {
-    NSURLSessionConfiguration *config = [NSURLSessionConfiguration ephemeralSessionConfiguration];
+    NSURLSessionConfiguration *config = [NSURLSessionConfiguration defaultSessionConfiguration];
     config.requestCachePolicy = NSURLRequestReloadIgnoringLocalCacheData;
     if (@available(iOS 11.0, *)) {
-        config.waitsForConnectivity = NO;
+        config.waitsForConnectivity = YES;
     }
+    config.allowsCellularAccess = NO;
     config.timeoutIntervalForRequest = 15.0;
     config.timeoutIntervalForResource = 30.0;
     _session = [NSURLSession sessionWithConfiguration:config];
@@ -79,8 +80,15 @@
             statusCode = ((NSHTTPURLResponse *)response).statusCode;
         }
         if (taskError) {
-            [ROSSothatLogger logError:@"[NetworkClient] POST %@ failed (error %ld): %@",
-             [url absoluteString], (long)taskError.code, [taskError localizedDescription]];
+            NSError *underlying = taskError.userInfo[NSUnderlyingErrorKey];
+            if (underlying) {
+                [ROSSothatLogger logError:@"[NetworkClient] POST %@ failed — Domain: %@, Code: %ld, Desc: %@, Underlying: [%@ %ld: %@]",
+                 [url absoluteString], taskError.domain, (long)taskError.code, [taskError localizedDescription],
+                 underlying.domain, (long)underlying.code, [underlying localizedDescription]];
+            } else {
+                [ROSSothatLogger logError:@"[NetworkClient] POST %@ failed — Domain: %@, Code: %ld, Desc: %@",
+                 [url absoluteString], taskError.domain, (long)taskError.code, [taskError localizedDescription]];
+            }
         } else {
             [ROSSothatLogger logInfo:@"[NetworkClient] POST %@ finished (HTTP %ld, %lu bytes)",
              [url absoluteString], (long)statusCode, (unsigned long)[data length]];
@@ -105,6 +113,17 @@
         NSString *text = nil;
         if ([response isKindOfClass:[NSHTTPURLResponse class]]) {
             statusCode = ((NSHTTPURLResponse *)response).statusCode;
+        }
+        if (taskError) {
+            NSError *underlying = taskError.userInfo[NSUnderlyingErrorKey];
+            if (underlying) {
+                [ROSSothatLogger logError:@"[NetworkClient] GET %@ failed — Domain: %@, Code: %ld, Desc: %@, Underlying: [%@ %ld: %@]",
+                 [url absoluteString], taskError.domain, (long)taskError.code, [taskError localizedDescription],
+                 underlying.domain, (long)underlying.code, [underlying localizedDescription]];
+            } else {
+                [ROSSothatLogger logError:@"[NetworkClient] GET %@ failed — Domain: %@, Code: %ld, Desc: %@",
+                 [url absoluteString], taskError.domain, (long)taskError.code, [taskError localizedDescription]];
+            }
         }
         if (data) {
             text = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];

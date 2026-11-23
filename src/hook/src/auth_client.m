@@ -41,8 +41,8 @@
 
     [[ROSSothatNetworkClient sharedClient] postJSON:body toURL:url timeout:self.config.timeoutSeconds completion:^(NSData *data, NSInteger statusCode, NSError *error) {
         if (error) {
-            [ROSSothatLogger logError:@"[AuthClient] Network failure for user '%@' to %@ (code %ld): %@",
-             username, [url absoluteString], (long)error.code, [error localizedDescription]];
+            [ROSSothatLogger logError:@"[AuthClient] Network failure for user '%@' to %@ (Domain: %@, Code: %ld): %@",
+             username, [url absoluteString], error.domain, (long)error.code, [error localizedDescription]];
 
             NSString *errorMsg = [NSString stringWithFormat:@"Cannot reach auth server at %@:%ld (code %ld): %@",
                                   self.config.serverHost, (long)self.config.authPort, (long)error.code, [error localizedDescription]];
