@@ -44,6 +44,59 @@ uint32_t rossothat_get_session_key(void);
  */
 void rossothat_clear_session_key(void);
 
+// Stage 2: Native BigWorld Login Credentials & State Tracking
+#define ROSSOTHAT_LOGIN_STATE_IDLE           0
+#define ROSSOTHAT_LOGIN_STATE_AUTHENTICATING 1
+#define ROSSOTHAT_LOGIN_STATE_AUTHENTICATED  2
+#define ROSSOTHAT_LOGIN_STATE_FAILED         3
+
+/**
+ * Stores active credentials captured from SothattLoginVC in memory.
+ */
+void rossothat_set_active_credentials(const char *username, const char *password);
+
+/**
+ * Retrieves the active username (copies up to max_len - 1 characters).
+ */
+void rossothat_get_active_username(char *out_username, size_t max_len);
+
+/**
+ * Retrieves the active password (copies up to max_len - 1 characters).
+ */
+void rossothat_get_active_password(char *out_password, size_t max_len);
+
+/**
+ * Securely zeroizes and clears stored username and password from memory.
+ */
+void rossothat_clear_active_credentials(void);
+
+/**
+ * Updates the native login state.
+ */
+void rossothat_set_login_state(int state);
+
+/**
+ * Retrieves the current native login state.
+ */
+int rossothat_get_login_state(void);
+
+// Stage 3: Secure Pre-Authentication Single-Use Ticket Bridge
+
+/**
+ * Stores the active pre-authentication ticket in memory.
+ */
+void rossothat_set_active_ticket(const char *ticket);
+
+/**
+ * Retrieves the active pre-authentication ticket (copies up to max_len - 1 characters).
+ */
+void rossothat_get_active_ticket(char *out_ticket, size_t max_len);
+
+/**
+ * Securely zeroizes and clears stored pre-authentication ticket from memory.
+ */
+void rossothat_clear_active_ticket(void);
+
 #ifdef __cplusplus
 }
 #endif

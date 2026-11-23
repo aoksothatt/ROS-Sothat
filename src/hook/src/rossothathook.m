@@ -70,11 +70,26 @@ static void (*orig_ntLogin)(id, SEL) = NULL;
         }
 
         SothattLoginVC *loginVC = [SothattLoginVC viewControllerWithConfig:self.config];
-        loginVC.onLoginSuccess = ^(uint32_t sessionKey) {
-            [ROSSothatLogger logInfo:@"Login success callback: sessionKey=0x%08X. Posting NT_NOTIFICATION_LOGIN {state=0}", sessionKey];
+        loginVC.onLoginSuccess = ^(__unused uint32_t sessionKey) {
+            char activeUser[128] = {0};
+            rossothat_get_active_username(activeUser, sizeof(activeUser));
+            char activeTicket[128] = {0};
+            rossothat_get_active_ticket(activeTicket, sizeof(activeTicket));
+
+            NSString *usernameStr = [NSString stringWithUTF8String:activeUser];
+            NSString *ticketStr = [NSString stringWithUTF8String:activeTicket];
+            NSString *loginUid = ([ticketStr length] > 0) ? ticketStr : (usernameStr ?: @"");
+
+            [ROSSothatLogger logInfo:@"Login success callback: player='%@', loginUid='%@'. Posting NT_NOTIFICATION_LOGIN {state=0}",
+             usernameStr, [ROSSothatLogger maskToken:loginUid]];
 
             // Post NetEase UniSDK notification to signal Python engine that login succeeded
-            NSDictionary *notifyDict = @{@"login_state": @(0), @"channel": @"sothatt"};
+            NSDictionary *notifyDict = @{
+                @"login_state": @(0),
+                @"channel": @"sothatt",
+                @"uid": loginUid,
+                @"username": usernameStr ?: @""
+            };
             [[NSNotificationCenter defaultCenter] postNotificationName:@"NT_NOTIFICATION_LOGIN"
                                                                 object:target
                                                               userInfo:notifyDict];
@@ -139,6 +154,9 @@ void rossothat_hook_initialize(void) {
 
 void rossothat_hook_shutdown(void) {
     [ROSSothatLogger logInfo:@"ROS Sothatt hook shutting down"];
+    rossothat_clear_active_credentials();
+    rossothat_clear_active_ticket();
+    rossothat_set_login_state(ROSSOTHAT_LOGIN_STATE_IDLE);
     rossothat_clear_session_key();
 }
 

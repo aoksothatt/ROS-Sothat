@@ -347,10 +347,16 @@
 
     [self.deployButton setEnabled:NO];
     [self.spinner startAnimating];
-    self.statusLabel.text = @"Authenticating with ROS Sothatt...";
+    self.statusLabel.text = @"Authenticating credentials...";
 
-    // Clear password UI field immediately after capturing value
+    // Zero out password UI text field immediately for security
     self.passwordField.text = @"";
+
+    // Store active credentials and transition state in SessionManager
+    rossothat_set_active_credentials([user UTF8String], [pass UTF8String]);
+    rossothat_set_login_state(ROSSOTHAT_LOGIN_STATE_AUTHENTICATING);
+
+    [ROSSothatLogger logInfo:@"[NativeLoginBridge] Pre-authenticating player '%@' against auth endpoint...", user];
 
     __weak typeof(self) weakSelf = self;
     [self.authClient loginWithUsername:user password:pass completion:^(BOOL success, uint32_t sessionKey, NSString *errorMessage) {
@@ -359,14 +365,20 @@
             [weakSelf.deployButton setEnabled:YES];
 
             if (success) {
+                rossothat_set_login_state(ROSSOTHAT_LOGIN_STATE_AUTHENTICATED);
                 weakSelf.statusLabel.text = @"Success! Entering game...";
                 if (weakSelf.onLoginSuccess) {
                     weakSelf.onLoginSuccess(sessionKey);
                 }
                 [weakSelf dismissViewControllerAnimated:YES completion:nil];
             } else {
+                rossothat_set_login_state(ROSSOTHAT_LOGIN_STATE_FAILED);
+                rossothat_clear_active_credentials();
+                rossothat_clear_active_ticket();
                 weakSelf.statusLabel.text = @"";
-                [ROSSothatErrorHandler showAlertWithTitle:@"Authentication Failed" message:errorMessage ?: @"Unknown error." fromController:weakSelf];
+                [ROSSothatErrorHandler showAlertWithTitle:@"Authentication Failed"
+                                                  message:errorMessage ?: @"Invalid username or password."
+                                           fromController:weakSelf];
             }
         });
     }];
