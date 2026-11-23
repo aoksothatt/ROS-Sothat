@@ -124,8 +124,9 @@ def main():
         runs = runs_data.get("workflow_runs", [])
         if runs:
             latest_run = runs[0]
-            # Check if this run is recent (within last 2 minutes)
-            if latest_run.get("head_sha") == TARGET_COMMIT:
+            # Check if this run matches target commit (full or prefix)
+            head_sha = latest_run.get("head_sha", "")
+            if head_sha == TARGET_COMMIT or head_sha.startswith(TARGET_COMMIT):
                 run_id = latest_run["id"]
                 print(f"[+] Found workflow run: ID {run_id} (Status: {latest_run.get('status')})")
                 print(f"    HTML URL: {latest_run.get('html_url')}")

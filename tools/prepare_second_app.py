@@ -58,12 +58,15 @@ NPK_ARCHIVES = [
     "Payload/client.app/res/weather.npk",
 ]
 
+ENTITIES_PUBKEY_SRC = os.path.join(PROJECT_ROOT, "phase6B_27_player_auth", "data", "keys", "loginapp.pubkey")
+
 DEFAULT_SERVER_HOST = os.environ.get("ROS_SERVER_HOST", "192.168.1.6")
 
 DEFAULT_SERVER_CONFIG = {
     "version": 1,
     "server_host": DEFAULT_SERVER_HOST,
     "auth_port": 20080,
+    "login_port": 20013,
     "discovery_port": 50010,
     "discovery_https_port": 50443,
     "baseapp_port": 20014,
@@ -290,6 +293,13 @@ def prepare_second_app_package(
             z_out.writestr("Payload/client.app/ros_server.json", config_json)
             z_out.writestr("Payload/client.app/server_list_file_name.txt", server_list_name_txt)
 
+            # Stage matching private-server RSA public key in NeoX VFS loose resource directory
+            if os.path.exists(ENTITIES_PUBKEY_SRC):
+                with open(ENTITIES_PUBKEY_SRC, "rb") as pkf:
+                    pubkey_bytes = pkf.read()
+                z_out.writestr("Payload/client.app/res/entities/loginapp.pubkey", pubkey_bytes)
+                print(f"[*] Staged VFS public key: Payload/client.app/res/entities/loginapp.pubkey ({len(pubkey_bytes)} bytes)")
+
     # Step 4: Verification of generated package
     print(f"[*] Step 4: Verifying assembled {os.path.basename(effective_output_ipa)}...")
     output_sha = compute_file_sha256(effective_output_ipa)
@@ -335,6 +345,20 @@ def prepare_second_app_package(
             assert b"https://cdn.mobile.roslegacy.net/ios/" not in ver_dylib, "Old discovery CDN URL still in dylib!"
             print(f"    [PASS] Authentication URL verified: {expected_auth.decode('utf-8')}")
             print(f"    [PASS] Discovery CDN URL verified: {expected_disc.decode('utf-8')}")
+
+        # Verify VFS public key staged in package
+        if os.path.exists(ENTITIES_PUBKEY_SRC):
+            assert "Payload/client.app/res/entities/loginapp.pubkey" in z_ver.namelist(), "Missing staged VFS loginapp.pubkey!"
+            ver_pk = z_ver.read("Payload/client.app/res/entities/loginapp.pubkey")
+            with open(ENTITIES_PUBKEY_SRC, "rb") as pkf:
+                expected_pk = pkf.read()
+            assert ver_pk == expected_pk, "Staged loginapp.pubkey content mismatch!"
+            print("    [PASS] VFS public key verified: Payload/client.app/res/entities/loginapp.pubkey")
+
+        # Verify ros_server.json contains login_port
+        ver_cfg = json.loads(z_ver.read("Payload/client.app/ros_server.json").decode("utf-8"))
+        assert ver_cfg.get("login_port") == 20013, f"Expected login_port 20013, got {ver_cfg.get('login_port')}"
+        print("    [PASS] ros_server.json login_port: 20013")
 
     print("=" * 72)
     print(" [ROS SOTHATT] STAGE 38Q-C: PACKAGING COMPLETE AND VERIFIED")

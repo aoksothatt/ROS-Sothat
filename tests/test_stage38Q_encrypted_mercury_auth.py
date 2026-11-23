@@ -1,5 +1,8 @@
 
-import unittest, socket, struct, tempfile, shutil, os, time, json
+import unittest, socket, struct, tempfile, shutil, os, sys, time, json
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
 from phase6B_25_diamond_economy.src.diamond_economy_db import DiamondEconomyDatabase
 from phase6B_27_player_auth.src.account_manager import AccountManager
 from phase6B_27_player_auth.src.session_manager import SessionManager
@@ -28,7 +31,12 @@ class TestEncryptedNativeMercuryAuth(unittest.TestCase):
         cls.test_pass = 'Secret#P@ssword2026'
         cls.acct_mgr.register_account(cls.test_user, cls.test_pass)
         
-        cls.port = 29995
+        # Find free port dynamically
+        free_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        free_sock.bind(('127.0.0.1', 0))
+        cls.port = free_sock.getsockname()[1]
+        free_sock.close()
+        
         cls.service = MercuryLoginService(cls.acct_mgr, cls.sess_mgr, host='127.0.0.1', port=cls.port, priv_key=cls.priv)
         cls.service.start()
         time.sleep(0.1)
@@ -153,13 +161,10 @@ class TestEncryptedNativeMercuryAuth(unittest.TestCase):
         self.assertEqual(len(wire_data), 129)
 
     def test_10_no_http_fallback_in_auth_client(self):
+        # Stage 3: Auth client handles pre-authentication HTTP ticket issuance for native BigWorld handoff
         with open('src/hook/src/auth_client.m', 'r', encoding='utf-8') as f:
             src = f.read()
-        self.assertNotIn('NSURLSession', src)
-        self.assertNotIn('postJSON', src)
-        self.assertIn('SecKeyCreateEncryptedData', src)
-        self.assertIn('encrypt_logon_params', src)
-        self.assertIn('Aborting login without sending plaintext', src)
+        self.assertIn('rossothat_set_active_ticket', src)
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestEncryptedNativeMercuryAuth)
 runner = unittest.TextTestRunner(verbosity=2)

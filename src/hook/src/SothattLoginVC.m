@@ -12,6 +12,7 @@
 #import "error_handler.h"
 #import "logging_manager.h"
 #import "baseapp_hook.h"
+#import "session_manager.h"
 
 @interface SothattLoginVC () <UITextFieldDelegate>
 
