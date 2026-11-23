@@ -36,14 +36,22 @@
     };
 
     NSURL *url = [self.config authURL];
-    [ROSSothatLogger logInfo:@"Dispatching auth request for user: '%@' to %@", username, [url absoluteString]];
+    [ROSSothatLogger logInfo:@"[AuthClient] Dispatching login request for user '%@' to effective URL: %@",
+     username, [url absoluteString]];
 
     [[ROSSothatNetworkClient sharedClient] postJSON:body toURL:url timeout:self.config.timeoutSeconds completion:^(NSData *data, NSInteger statusCode, NSError *error) {
         if (error) {
-            [ROSSothatLogger logError:@"Auth network error (code %ld): %@", (long)error.code, [error localizedDescription]];
-            NSString *errorMsg = [NSString stringWithFormat:@"Network connection error: %@", [error localizedDescription]];
-            if (error.code == -1009) {
-                errorMsg = [NSString stringWithFormat:@"Cannot reach server at %@ (error -1009). Please ensure Local Network access is enabled in iPhone Settings > ROS Sothatt and device is on Wi-Fi.", self.config.serverHost];
+            [ROSSothatLogger logError:@"[AuthClient] Network failure for user '%@' to %@ (code %ld): %@",
+             username, [url absoluteString], (long)error.code, [error localizedDescription]];
+
+            NSString *errorMsg = [NSString stringWithFormat:@"Cannot reach auth server at %@:%ld (code %ld): %@",
+                                  self.config.serverHost, (long)self.config.authPort, (long)error.code, [error localizedDescription]];
+            if (error.code == -1001) {
+                errorMsg = [NSString stringWithFormat:@"Connection timed out reaching %@:%ld. Check server status and Wi-Fi.",
+                            self.config.serverHost, (long)self.config.authPort];
+            } else if (error.code == -1009) {
+                errorMsg = [NSString stringWithFormat:@"Cannot reach server at %@ (code -1009). Ensure Local Network access is ON in iPhone Settings > ROS Sothatt and device is on Wi-Fi.",
+                            self.config.serverHost];
             }
             if (completion) completion(NO, 0, errorMsg);
             return;

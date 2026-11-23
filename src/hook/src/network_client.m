@@ -6,6 +6,7 @@
 //
 
 #import "network_client.h"
+#import "logging_manager.h"
 
 @interface ROSSothatNetworkClient ()
 @property (nonatomic, strong) NSURLSession *session;
@@ -25,16 +26,28 @@
 - (instancetype)init {
     self = [super init];
     if (self) {
-        NSURLSessionConfiguration *config = [NSURLSessionConfiguration ephemeralSessionConfiguration];
-        config.requestCachePolicy = NSURLRequestReloadIgnoringLocalCacheData;
-        if (@available(iOS 11.0, *)) {
-            config.waitsForConnectivity = YES;
-        }
-        config.timeoutIntervalForRequest = 30.0;
-        config.timeoutIntervalForResource = 60.0;
-        _session = [NSURLSession sessionWithConfiguration:config];
+        [self createSession];
     }
     return self;
+}
+
+- (void)createSession {
+    NSURLSessionConfiguration *config = [NSURLSessionConfiguration ephemeralSessionConfiguration];
+    config.requestCachePolicy = NSURLRequestReloadIgnoringLocalCacheData;
+    if (@available(iOS 11.0, *)) {
+        config.waitsForConnectivity = NO;
+    }
+    config.timeoutIntervalForRequest = 15.0;
+    config.timeoutIntervalForResource = 30.0;
+    _session = [NSURLSession sessionWithConfiguration:config];
+}
+
+- (void)resetSession {
+    if (_session) {
+        [_session finishTasksAndInvalidate];
+    }
+    [self createSession];
+    [ROSSothatLogger logInfo:@"[NetworkClient] Session reset; fresh connection pool ready"];
 }
 
 - (void)postJSON:(NSDictionary *)jsonDict
@@ -44,11 +57,12 @@
     NSError *error = nil;
     NSData *bodyData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:&error];
     if (error) {
+        [ROSSothatLogger logError:@"[NetworkClient] JSON serialization failed: %@", [error localizedDescription]];
         if (completion) completion(nil, 0, error);
         return;
     }
 
-    NSTimeInterval effectiveTimeout = (timeout > 30.0) ? timeout : 30.0;
+    NSTimeInterval effectiveTimeout = (timeout > 0.0) ? timeout : 15.0;
     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url];
     request.HTTPMethod = @"POST";
     request.timeoutInterval = effectiveTimeout;
@@ -56,10 +70,20 @@
     [request setValue:@"application/json" forHTTPHeaderField:@"Accept"];
     request.HTTPBody = bodyData;
 
+    [ROSSothatLogger logInfo:@"[NetworkClient] POST %@ (payload: %lu bytes, timeout: %.1fs)",
+     [url absoluteString], (unsigned long)[bodyData length], effectiveTimeout];
+
     NSURLSessionDataTask *task = [self.session dataTaskWithRequest:request completionHandler:^(NSData *data, NSURLResponse *response, NSError *taskError) {
         NSInteger statusCode = 0;
         if ([response isKindOfClass:[NSHTTPURLResponse class]]) {
             statusCode = ((NSHTTPURLResponse *)response).statusCode;
+        }
+        if (taskError) {
+            [ROSSothatLogger logError:@"[NetworkClient] POST %@ failed (error %ld): %@",
+             [url absoluteString], (long)taskError.code, [taskError localizedDescription]];
+        } else {
+            [ROSSothatLogger logInfo:@"[NetworkClient] POST %@ finished (HTTP %ld, %lu bytes)",
+             [url absoluteString], (long)statusCode, (unsigned long)[data length]];
         }
         if (completion) {
             completion(data, statusCode, taskError);

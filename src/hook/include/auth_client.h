@@ -17,7 +17,7 @@ typedef void (^ROSSothatAuthCompletion)(BOOL success, uint32_t sessionKey, NSStr
 
 @interface ROSSothatAuthClient : NSObject
 
-@property (nonatomic, strong, readonly) ROSSothatConfig *config;
+@property (nonatomic, strong) ROSSothatConfig *config;
 
 - (instancetype)initWithConfig:(ROSSothatConfig *)config;
 

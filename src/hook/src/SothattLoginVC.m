@@ -7,6 +7,8 @@
 
 #import "SothattLoginVC.h"
 #import "auth_client.h"
+#import "network_client.h"
+#import "rossothathook.h"
 #import "error_handler.h"
 #import "logging_manager.h"
 #import "baseapp_hook.h"
@@ -378,7 +380,7 @@
                                                             preferredStyle:UIAlertControllerStyleAlert];
 
     [alert addTextFieldWithConfigurationHandler:^(UITextField *textField) {
-        textField.placeholder = @"Server IPv4 (e.g. 192.168.1.13)";
+        textField.placeholder = @"Server IPv4 (e.g. 192.168.1.7)";
         textField.text = self.config.serverHost;
         textField.keyboardType = UIKeyboardTypeNumbersAndPunctuation;
     }];
@@ -388,13 +390,28 @@
         NSString *newHost = [alert.textFields.firstObject.text stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
         if ([newHost length] > 0) {
             NSError *err = nil;
-            NSDictionary *dict = @{@"server_host": newHost};
+            ROSSothatConfig *current = weakSelf.config ?: [ROSSothatConfig defaultConfig];
+            NSDictionary *dict = @{
+                @"version": @(current.version),
+                @"server_host": newHost,
+                @"auth_port": @(current.authPort),
+                @"discovery_port": @(current.discoveryPort),
+                @"discovery_https_port": @(current.discoveryHttpsPort),
+                @"baseapp_port": @(current.baseappPort),
+                @"cellapp_port": @(current.cellappPort),
+                @"auth_path": current.authPath ?: @"/v2/ros/login_mobile_ios_v2",
+                @"discovery_path": current.discoveryPath ?: @"/server_list_ios.txt",
+                @"timeout_seconds": @(current.timeoutSeconds),
+                @"tls_enabled": @(current.tlsEnabled)
+            };
             NSData *data = [NSJSONSerialization dataWithJSONObject:dict options:0 error:nil];
             ROSSothatConfig *newCfg = [ROSSothatConfig configFromJSONData:data error:&err];
             if (newCfg) {
                 [ROSSothatConfig saveToDocumentsDirectory:newCfg error:nil];
                 weakSelf.config = newCfg;
                 weakSelf.authClient = [[ROSSothatAuthClient alloc] initWithConfig:newCfg];
+                [[ROSSothatHookCoordinator sharedCoordinator] updateConfig:newCfg];
+                [[ROSSothatNetworkClient sharedClient] resetSession];
                 rossothat_update_target_host([newHost UTF8String]);
                 rossothat_probe_local_network([newHost UTF8String]);
                 [weakSelf.settingsButton setTitle:[NSString stringWithFormat:@"Server: %@", newHost] forState:UIControlStateNormal];

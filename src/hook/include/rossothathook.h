@@ -40,4 +40,16 @@ void rossothat_hook_shutdown(void);
 }
 #endif
 
+#if defined(__OBJC__)
+#import <Foundation/Foundation.h>
+#import "config_manager.h"
+
+@interface ROSSothatHookCoordinator : NSObject
+@property (nonatomic, strong) ROSSothatConfig *config;
++ (instancetype)sharedCoordinator;
+- (void)updateConfig:(ROSSothatConfig *)config;
+- (void)handleNtLoginWithTarget:(id)target selector:(SEL)selector;
+@end
+#endif
+
 #endif // ROSSOTHATHOOK_H

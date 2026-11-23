@@ -68,7 +68,7 @@ DEFAULT_SERVER_CONFIG = {
     "discovery_https_port": 50443,
     "baseapp_port": 20014,
     "cellapp_port": 20002,
-    "auth_path": "/v2/ros/login_mobile_ios",
+    "auth_path": "/v2/ros/login_mobile_ios_v2",
     "discovery_path": "/server_list_ios.txt",
     "timeout_seconds": 5.0,
     "tls_enabled": False
@@ -110,10 +110,11 @@ def prepare_sothatt_dylib(original_dylib_bytes: bytes, target_host: str = DEFAUL
 
     # 1. Update Authentication URL
     # Original: https://api.roslegacy.net/v2/ros/login_mobile_ios_v2 (52 bytes)
-    # Private:  http://{target_host}:20080/v2/ros/login_mobile_ios (50 bytes for 192.168.1.13)
-    # Target endpoint /v2/ros/login_mobile_ios is verified fully supported by LegacyMobileAuthServer.
+    # Private:  http://{target_host}:20080/v2/ros/login_mobile_ios_v2 (52 bytes for 192.168.1.7)
+    # Target endpoint /v2/ros/login_mobile_ios_v2 is standardized for LegacyMobileAuthServer.
     orig_auth = b"https://api.roslegacy.net/v2/ros/login_mobile_ios_v2"
-    priv_auth = f"http://{target_host}:20080/v2/ros/login_mobile_ios".encode("utf-8")
+    auth_route = "/v2/ros/login_mobile_ios_v2" if len(f"http://{target_host}:20080/v2/ros/login_mobile_ios_v2") <= len(orig_auth) else "/v2/ros/login_mobile_ios"
+    priv_auth = f"http://{target_host}:20080{auth_route}".encode("utf-8")
     if len(priv_auth) > len(orig_auth):
         raise ValueError(
             f"priv_auth '{priv_auth.decode()}' length ({len(priv_auth)} bytes) "
@@ -152,7 +153,7 @@ def prepare_sothatt_dylib(original_dylib_bytes: bytes, target_host: str = DEFAUL
     return patched_bytes
 
 
-def update_info_plist(plist_bytes: bytes) -> bytes:
+def update_info_plist(plist_bytes: bytes, target_host: str = DEFAULT_SERVER_HOST) -> bytes:
     """
     Updates client Info.plist to decouple App 2 from App 1:
     - CFBundleIdentifier = net.roslegacy.sothatt
@@ -182,10 +183,24 @@ def update_info_plist(plist_bytes: bytes) -> bytes:
     plist["UIFileSharingEnabled"] = True
     plist["LSSupportsOpeningDocumentsInPlace"] = True
 
-    # App Transport Security: explicitly permit local RFC1918 networking
+    # App Transport Security: explicitly permit local RFC1918 networking.
+    # CRITICAL: In iOS 10+, setting NSAllowsLocalNetworking causes ATS to ignore
+    # NSAllowsArbitraryLoads for numeric IP addresses (it only covers .local/unqualified names).
+    # We remove NSAllowsLocalNetworking so NSAllowsArbitraryLoads applies unconditionally to LAN IPs,
+    # and configure explicit NSExceptionDomains for maximum compatibility.
     ats = plist.setdefault("NSAppTransportSecurity", {})
     ats["NSAllowsArbitraryLoads"] = True
-    ats["NSAllowsLocalNetworking"] = True
+    ats.pop("NSAllowsLocalNetworking", None)
+
+    exception_domains = ats.setdefault("NSExceptionDomains", {})
+    allowed_hosts = {target_host, "192.168.1.7", "127.0.0.1", "localhost"}
+    for host in allowed_hosts:
+        if host:
+            exception_domains[host] = {
+                "NSExceptionAllowsInsecureHTTPLoads": True,
+                "NSIncludesSubdomains": True,
+                "NSTemporaryExceptionAllowsInsecureHTTPLoads": True,
+            }
 
     return plistlib.dumps(plist, fmt=plistlib.FMT_XML)
 
@@ -236,7 +251,7 @@ def prepare_second_app_package(
 
         # Prepare modified Info.plist
         raw_plist = z_in.read("Payload/client.app/Info.plist")
-        updated_plist = update_info_plist(raw_plist)
+        updated_plist = update_info_plist(raw_plist, target_host=target_host)
 
         # Prepare clean-room rosauthhook.dylib
         is_cleanroom_dylib = False
@@ -323,7 +338,7 @@ def prepare_second_app_package(
         if is_cleanroom_dylib:
             print(f"    [PASS] Clean-room compiled dylib verified in package ({len(ver_dylib)} bytes, SHA-256: {compute_bytes_sha256(ver_dylib)})")
         else:
-            expected_auth = f"http://{target_host}:20080/v2/ros/login_mobile_ios".encode("utf-8")
+            expected_auth = priv_auth
             expected_disc = f"http://{target_host}:50010/ios/".encode("utf-8")
             assert expected_auth in ver_dylib, f"Expected auth URL {expected_auth} not in dylib!"
             assert expected_disc in ver_dylib, f"Expected discovery URL {expected_disc} not in dylib!"
@@ -341,7 +356,7 @@ def prepare_second_app_package(
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description="Prepare separate ROS Sothatt testing package")
-    parser.add_argument("--host", default=DEFAULT_SERVER_HOST, help="Target LAN host IP (default: 192.168.1.13)")
+    parser.add_argument("--host", default=DEFAULT_SERVER_HOST, help="Target LAN host IP (default: 192.168.1.7)")
     parser.add_argument("--dylib", default=None, help="Path to clean-room compiled rosauthhook.dylib")
     parser.add_argument("--output", default=None, help="Custom output path for generated IPA")
     args = parser.parse_args()

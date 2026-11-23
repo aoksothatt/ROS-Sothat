@@ -18,6 +18,8 @@ typedef void (^ROSSothatHTTPCompletion)(NSData * _Nullable data, NSInteger statu
 
 + (instancetype)sharedClient;
 
+- (void)resetSession;
+
 - (void)postJSON:(NSDictionary *)jsonDict
            toURL:(NSURL *)url
          timeout:(NSTimeInterval)timeout

@@ -51,6 +51,16 @@ static void (*orig_ntLogin)(id, SEL) = NULL;
     return self;
 }
 
+- (void)updateConfig:(ROSSothatConfig *)config {
+    if (config) {
+        _config = config;
+        rossothat_update_target_host([config.serverHost UTF8String]);
+        rossothat_probe_local_network([config.serverHost UTF8String]);
+        [ROSSothatLogger logInfo:@"Hook coordinator configuration updated: host=%@, auth=%ld, disc=%ld",
+         config.serverHost, (long)config.authPort, (long)config.discoveryPort];
+    }
+}
+
 - (void)handleNtLoginWithTarget:(id)target selector:(SEL)selector {
     [ROSSothatLogger logInfo:@"Intercepted NtSdkBase::ntLogin() — Suppressing NetEase UniSDK dialog"];
 

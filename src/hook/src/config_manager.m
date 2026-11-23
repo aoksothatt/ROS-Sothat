@@ -7,7 +7,7 @@
 
 #import "config_manager.h"
 
-static NSString *const kDefaultServerHost = @"192.168.1.13";
+static NSString *const kDefaultServerHost = @"192.168.1.7";
 static const NSInteger kDefaultAuthPort = 20080;
 static const NSInteger kDefaultDiscoveryPort = 50010;
 static const NSInteger kDefaultDiscoveryHttpsPort = 50443;
@@ -131,6 +131,22 @@ static const NSTimeInterval kDefaultTimeout = 5.0;
     if (!cfg) {
         return [self defaultConfig];
     }
+
+    // Auto-migration: if persisted documents config still holds retired or broken IPs,
+    // seamlessly migrate to the active LAN server host without requiring manual reset.
+    BOOL needsResave = NO;
+    if ([cfg.serverHost isEqualToString:@"192.168.1.13"] || [cfg.serverHost hasPrefix:@"192.168.100."]) {
+        cfg->_serverHost = [kDefaultServerHost copy];
+        needsResave = YES;
+    }
+    if ([cfg.authPath isEqualToString:@"/v2/ros/login_mobile_ios"]) {
+        cfg->_authPath = [kDefaultAuthPath copy];
+        needsResave = YES;
+    }
+    if (needsResave) {
+        [self saveToDocumentsDirectory:cfg error:nil];
+    }
+
     return cfg;
 }
 
@@ -159,7 +175,8 @@ static const NSTimeInterval kDefaultTimeout = 5.0;
 
 - (NSURL *)authURL {
     NSString *scheme = self.tlsEnabled ? @"https" : @"http";
-    return [NSURL URLWithString:[NSString stringWithFormat:@"%@://%@:%ld%@", scheme, self.serverHost, (long)self.authPort, self.authPath]];
+    NSString *path = [self.authPath hasPrefix:@"/"] ? self.authPath : [@"/" stringByAppendingString:self.authPath ?: @""];
+    return [NSURL URLWithString:[NSString stringWithFormat:@"%@://%@:%ld%@", scheme, self.serverHost, (long)self.authPort, path]];
 }
 
 - (NSURL *)discoveryURL {

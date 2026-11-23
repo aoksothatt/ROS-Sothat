@@ -262,9 +262,9 @@ class TestLoginKeyboardSafety(unittest.TestCase):
                         "Status label must be visible at max scroll")
 
     def test_12_server_config_placeholder_and_ip_sanitation(self):
-        """Verifies server IP placeholder is 192.168.1.13 and no retired IP is present."""
-        self.assertIn("Server IPv4 (e.g. 192.168.1.13)", self.login_m,
-                      "Placeholder must specify 192.168.1.13")
+        """Verifies server IP placeholder is 192.168.1.7 and no retired IP is present."""
+        self.assertIn("Server IPv4 (e.g. 192.168.1.7)", self.login_m,
+                      "Placeholder must specify 192.168.1.7")
         self.assertNotIn("192.168.100.11", self.login_m,
                       "Retired IP 192.168.100.11 must not be present")
 
