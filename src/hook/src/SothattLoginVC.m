@@ -221,6 +221,7 @@
     }
     CGFloat bottomPadding = topMargin;
     CGFloat contentTotalH = stackH + topMargin + bottomPadding;
+    (void)contentTotalH;
 
     CGFloat curY = topMargin;
 
