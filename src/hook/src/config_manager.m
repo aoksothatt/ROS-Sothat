@@ -9,6 +9,7 @@
 
 static NSString *const kDefaultServerHost = @"192.168.1.6";
 static const NSInteger kDefaultAuthPort = 20080;
+static const NSInteger kDefaultLoginPort = 20013;
 static const NSInteger kDefaultDiscoveryPort = 50010;
 static const NSInteger kDefaultDiscoveryHttpsPort = 50443;
 static const NSInteger kDefaultBaseAppPort = 20014;
@@ -24,6 +25,7 @@ static const NSTimeInterval kDefaultTimeout = 15.0;
     cfg->_version = 1;
     cfg->_serverHost = kDefaultServerHost;
     cfg->_authPort = kDefaultAuthPort;
+    cfg->_loginPort = kDefaultLoginPort;
     cfg->_discoveryPort = kDefaultDiscoveryPort;
     cfg->_discoveryHttpsPort = kDefaultDiscoveryHttpsPort;
     cfg->_baseappPort = kDefaultBaseAppPort;
@@ -84,6 +86,7 @@ static const NSTimeInterval kDefaultTimeout = 15.0;
     cfg->_version = [dict[@"version"] integerValue] ?: 1;
     cfg->_serverHost = [host copy];
     cfg->_authPort = [dict[@"auth_port"] integerValue] ?: kDefaultAuthPort;
+    cfg->_loginPort = [dict[@"login_port"] integerValue] ?: kDefaultLoginPort;
     cfg->_discoveryPort = [dict[@"discovery_port"] integerValue] ?: kDefaultDiscoveryPort;
     cfg->_discoveryHttpsPort = [dict[@"discovery_https_port"] integerValue] ?: kDefaultDiscoveryHttpsPort;
     cfg->_baseappPort = [dict[@"baseapp_port"] integerValue] ?: kDefaultBaseAppPort;
@@ -161,6 +164,7 @@ static const NSTimeInterval kDefaultTimeout = 15.0;
         @"version": @(config.version),
         @"server_host": config.serverHost,
         @"auth_port": @(config.authPort),
+        @"login_port": @(config.loginPort),
         @"discovery_port": @(config.discoveryPort),
         @"discovery_https_port": @(config.discoveryHttpsPort),
         @"baseapp_port": @(config.baseappPort),

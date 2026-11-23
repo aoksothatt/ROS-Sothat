@@ -17,6 +17,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, assign, readonly) NSInteger version;
 @property (nonatomic, copy, readonly) NSString *serverHost;
 @property (nonatomic, assign, readonly) NSInteger authPort;
+@property (nonatomic, assign, readonly) NSInteger loginPort;
 @property (nonatomic, assign, readonly) NSInteger discoveryPort;
 @property (nonatomic, assign, readonly) NSInteger discoveryHttpsPort;
 @property (nonatomic, assign, readonly) NSInteger baseappPort;
