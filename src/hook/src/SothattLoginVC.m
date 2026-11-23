@@ -9,6 +9,7 @@
 #import "auth_client.h"
 #import "error_handler.h"
 #import "logging_manager.h"
+#import "baseapp_hook.h"
 
 @interface SothattLoginVC () <UITextFieldDelegate>
 
@@ -393,6 +394,8 @@
                 [ROSSothatConfig saveToDocumentsDirectory:newCfg error:nil];
                 weakSelf.config = newCfg;
                 weakSelf.authClient = [[ROSSothatAuthClient alloc] initWithConfig:newCfg];
+                rossothat_update_target_host([newHost UTF8String]);
+                rossothat_probe_local_network([newHost UTF8String]);
                 [weakSelf.settingsButton setTitle:[NSString stringWithFormat:@"Server: %@", newHost] forState:UIControlStateNormal];
             } else {
                 [ROSSothatErrorHandler showAlertWithTitle:@"Invalid IP" message:@"Please enter a valid private IPv4 address." fromController:weakSelf];

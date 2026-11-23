@@ -113,7 +113,10 @@ void rossothat_hook_initialize(void) {
         [ROSSothatLogger logError:@"Failed to install POSIX connect hook (error %d)", connRes];
     }
 
-    // 3. Swizzle NetEase UniSDK NtSdkBase::ntLogin
+    // 3. Proactively trigger Local Network privacy evaluation on target LAN host (Apple TN3179)
+    rossothat_probe_local_network([config.serverHost UTF8String]);
+
+    // 4. Swizzle NetEase UniSDK NtSdkBase::ntLogin
     Class ntSdkClass = objc_getClass("NtSdkBase");
     if (ntSdkClass) {
         SEL loginSel = sel_registerName("ntLogin");

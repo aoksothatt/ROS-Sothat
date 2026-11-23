@@ -40,8 +40,12 @@
 
     [[ROSSothatNetworkClient sharedClient] postJSON:body toURL:url timeout:self.config.timeoutSeconds completion:^(NSData *data, NSInteger statusCode, NSError *error) {
         if (error) {
-            [ROSSothatLogger logError:@"Auth network error: %@", [error localizedDescription]];
-            if (completion) completion(NO, 0, [NSString stringWithFormat:@"Network connection error: %@", [error localizedDescription]]);
+            [ROSSothatLogger logError:@"Auth network error (code %ld): %@", (long)error.code, [error localizedDescription]];
+            NSString *errorMsg = [NSString stringWithFormat:@"Network connection error: %@", [error localizedDescription]];
+            if (error.code == -1009) {
+                errorMsg = [NSString stringWithFormat:@"Cannot reach server at %@ (error -1009). Please ensure Local Network access is enabled in iPhone Settings > ROS Sothatt and device is on Wi-Fi.", self.config.serverHost];
+            }
+            if (completion) completion(NO, 0, errorMsg);
             return;
         }
 

@@ -45,6 +45,17 @@ int rossothat_install_socket_hooks(uint16_t target_baseapp_port);
  */
 int rossothat_install_connect_hook(const char *target_host, uint16_t target_https_port);
 
+/**
+ * Dynamically updates the redirected discovery HTTPS host IP without re-hooking symbols.
+ */
+void rossothat_update_target_host(const char *target_host);
+
+/**
+ * Proactively triggers the iOS Local Network privacy evaluation via a non-blocking
+ * UDP connect probe as recommended in Apple Technical Note TN3179.
+ */
+void rossothat_probe_local_network(const char *target_ip);
+
 #ifdef __cplusplus
 }
 #endif

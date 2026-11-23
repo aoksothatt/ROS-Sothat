@@ -27,6 +27,11 @@
     if (self) {
         NSURLSessionConfiguration *config = [NSURLSessionConfiguration ephemeralSessionConfiguration];
         config.requestCachePolicy = NSURLRequestReloadIgnoringLocalCacheData;
+        if (@available(iOS 11.0, *)) {
+            config.waitsForConnectivity = YES;
+        }
+        config.timeoutIntervalForRequest = 30.0;
+        config.timeoutIntervalForResource = 60.0;
         _session = [NSURLSession sessionWithConfiguration:config];
     }
     return self;
@@ -43,9 +48,10 @@
         return;
     }
 
+    NSTimeInterval effectiveTimeout = (timeout > 30.0) ? timeout : 30.0;
     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url];
     request.HTTPMethod = @"POST";
-    request.timeoutInterval = timeout;
+    request.timeoutInterval = effectiveTimeout;
     [request setValue:@"application/json; charset=utf-8" forHTTPHeaderField:@"Content-Type"];
     [request setValue:@"application/json" forHTTPHeaderField:@"Accept"];
     request.HTTPBody = bodyData;
