@@ -7,7 +7,7 @@
 
 #import "config_manager.h"
 
-static NSString *const kDefaultServerHost = @"192.168.1.7";
+static NSString *const kDefaultServerHost = @"192.168.1.6";
 static const NSInteger kDefaultAuthPort = 20080;
 static const NSInteger kDefaultDiscoveryPort = 50010;
 static const NSInteger kDefaultDiscoveryHttpsPort = 50443;
@@ -135,7 +135,7 @@ static const NSTimeInterval kDefaultTimeout = 5.0;
     // Auto-migration: if persisted documents config still holds retired or broken IPs,
     // seamlessly migrate to the active LAN server host without requiring manual reset.
     BOOL needsResave = NO;
-    if ([cfg.serverHost isEqualToString:@"192.168.1.13"] || [cfg.serverHost hasPrefix:@"192.168.100."]) {
+    if ([cfg.serverHost isEqualToString:@"192.168.1.13"] || [cfg.serverHost isEqualToString:@"192.168.1.7"] || [cfg.serverHost hasPrefix:@"192.168.100."]) {
         cfg->_serverHost = [kDefaultServerHost copy];
         needsResave = YES;
     }

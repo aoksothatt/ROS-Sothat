@@ -210,7 +210,7 @@ def main():
         b"rossothat_fnv1a_32",
         b"rossothat_stamp_baseapp_handshake",
         b"172.65.54.209",
-        b"192.168.1.7",
+        b"192.168.1.6",
         b"50443",
     ]
     for sym in symbols_to_check:

@@ -63,8 +63,8 @@ class TestHookPipelineFixes(unittest.TestCase):
         with open(cfg_m_path, "r", encoding="utf-8") as f:
             content = f.read()
 
-        # 1. Default host must be 192.168.1.7
-        self.assertIn('kDefaultServerHost = @"192.168.1.7"', content)
+        # 1. Default host must be 192.168.1.6
+        self.assertIn('kDefaultServerHost = @"192.168.1.6"', content)
         self.assertNotIn("192.168.100.11", content)
 
         # 2. Bundle fallback in loadFromDocumentsDirectory
@@ -82,7 +82,7 @@ class TestHookPipelineFixes(unittest.TestCase):
         with open(vc_path, "r", encoding="utf-8") as f:
             content = f.read()
 
-        self.assertIn('Server IPv4 (e.g. 192.168.1.7)', content)
+        self.assertIn('Server IPv4 (e.g. 192.168.1.6)', content)
         self.assertNotIn("192.168.100.11", content)
 
     def test_03_zero_retired_ip_in_hook_tree(self):

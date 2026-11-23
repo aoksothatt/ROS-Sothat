@@ -58,7 +58,7 @@ NPK_ARCHIVES = [
     "Payload/client.app/res/weather.npk",
 ]
 
-DEFAULT_SERVER_HOST = os.environ.get("ROS_SERVER_HOST", "192.168.1.7")
+DEFAULT_SERVER_HOST = os.environ.get("ROS_SERVER_HOST", "192.168.1.6")
 
 DEFAULT_SERVER_CONFIG = {
     "version": 1,
@@ -183,24 +183,13 @@ def update_info_plist(plist_bytes: bytes, target_host: str = DEFAULT_SERVER_HOST
     plist["UIFileSharingEnabled"] = True
     plist["LSSupportsOpeningDocumentsInPlace"] = True
 
-    # App Transport Security: explicitly permit local RFC1918 networking.
-    # CRITICAL: In iOS 10+, setting NSAllowsLocalNetworking causes ATS to ignore
-    # NSAllowsArbitraryLoads for numeric IP addresses (it only covers .local/unqualified names).
-    # We remove NSAllowsLocalNetworking so NSAllowsArbitraryLoads applies unconditionally to LAN IPs,
-    # and configure explicit NSExceptionDomains for maximum compatibility.
+    # App Transport Security: explicitly permit local RFC1918 networking for iOS 16.7.16.
+    # Keep NSAllowsArbitraryLoads = YES and NSAllowsLocalNetworking = YES.
+    # Remove numeric IP entries from NSExceptionDomains as iOS 16 ATS fails on raw IPs in exception domains.
     ats = plist.setdefault("NSAppTransportSecurity", {})
     ats["NSAllowsArbitraryLoads"] = True
-    ats.pop("NSAllowsLocalNetworking", None)
-
-    exception_domains = ats.setdefault("NSExceptionDomains", {})
-    allowed_hosts = {target_host, "192.168.1.7", "127.0.0.1", "localhost"}
-    for host in allowed_hosts:
-        if host:
-            exception_domains[host] = {
-                "NSExceptionAllowsInsecureHTTPLoads": True,
-                "NSIncludesSubdomains": True,
-                "NSTemporaryExceptionAllowsInsecureHTTPLoads": True,
-            }
+    ats["NSAllowsLocalNetworking"] = True
+    ats.pop("NSExceptionDomains", None)
 
     return plistlib.dumps(plist, fmt=plistlib.FMT_XML)
 
@@ -356,7 +345,7 @@ def prepare_second_app_package(
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description="Prepare separate ROS Sothatt testing package")
-    parser.add_argument("--host", default=DEFAULT_SERVER_HOST, help="Target LAN host IP (default: 192.168.1.7)")
+    parser.add_argument("--host", default=DEFAULT_SERVER_HOST, help="Target LAN host IP (default: 192.168.1.6)")
     parser.add_argument("--dylib", default=None, help="Path to clean-room compiled rosauthhook.dylib")
     parser.add_argument("--output", default=None, help="Custom output path for generated IPA")
     args = parser.parse_args()

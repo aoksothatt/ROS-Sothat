@@ -380,7 +380,7 @@
                                                             preferredStyle:UIAlertControllerStyleAlert];
 
     [alert addTextFieldWithConfigurationHandler:^(UITextField *textField) {
-        textField.placeholder = @"Server IPv4 (e.g. 192.168.1.7)";
+        textField.placeholder = @"Server IPv4 (e.g. 192.168.1.6)";
         textField.text = self.config.serverHost;
         textField.keyboardType = UIKeyboardTypeNumbersAndPunctuation;
     }];
