@@ -37,7 +37,6 @@
     if (@available(iOS 11.0, *)) {
         config.waitsForConnectivity = NO;
     }
-    config.allowsCellularAccess = NO;
     config.timeoutIntervalForRequest = 15.0;
     config.timeoutIntervalForResource = 30.0;
     _session = [NSURLSession sessionWithConfiguration:config delegate:self delegateQueue:nil];
@@ -100,7 +99,7 @@
     request.HTTPBody = bodyData;
 
     NSDate *requestStartTime = [NSDate date];
-    [ROSSothatLogger logInfo:@"[NetworkClient] POST %@ (payload: %lu bytes, timeout: %.1fs, cellular=NO, waitsForConn=NO)",
+    [ROSSothatLogger logInfo:@"[NetworkClient] POST %@ (payload: %lu bytes, timeout: %.1fs, waitsForConn=NO)",
      [url absoluteString], (unsigned long)[bodyData length], effectiveTimeout];
 
     NSURLSessionDataTask *task = [self.session dataTaskWithRequest:request completionHandler:^(NSData *data, NSURLResponse *response, NSError *taskError) {
