@@ -70,7 +70,7 @@ DEFAULT_SERVER_CONFIG = {
     "cellapp_port": 20002,
     "auth_path": "/v2/ros/login_mobile_ios_v2",
     "discovery_path": "/server_list_ios.txt",
-    "timeout_seconds": 5.0,
+    "timeout_seconds": 15.0,
     "tls_enabled": False
 }
 

@@ -47,7 +47,7 @@
             NSString *errorMsg = [NSString stringWithFormat:@"Cannot reach auth server at %@:%ld (code %ld): %@",
                                   self.config.serverHost, (long)self.config.authPort, (long)error.code, [error localizedDescription]];
             if (error.code == -1001) {
-                errorMsg = [NSString stringWithFormat:@"Connection timed out reaching %@:%ld. Check server status and Wi-Fi.",
+                errorMsg = [NSString stringWithFormat:@"Connection timed out reaching %@:%ld after 15s. Check server status and Wi-Fi.",
                             self.config.serverHost, (long)self.config.authPort];
             } else if (error.code == -1009) {
                 errorMsg = [NSString stringWithFormat:@"Cannot reach server at %@ (code -1009). Ensure Local Network access is ON in iPhone Settings > ROS Sothatt and device is on Wi-Fi.",

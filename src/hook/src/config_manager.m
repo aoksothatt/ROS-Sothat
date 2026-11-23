@@ -15,7 +15,7 @@ static const NSInteger kDefaultBaseAppPort = 20014;
 static const NSInteger kDefaultCellAppPort = 20002;
 static NSString *const kDefaultAuthPath = @"/v2/ros/login_mobile_ios_v2";
 static NSString *const kDefaultDiscoveryPath = @"/server_list_ios.txt";
-static const NSTimeInterval kDefaultTimeout = 5.0;
+static const NSTimeInterval kDefaultTimeout = 15.0;
 
 @implementation ROSSothatConfig
 
@@ -141,6 +141,10 @@ static const NSTimeInterval kDefaultTimeout = 5.0;
     }
     if ([cfg.authPath isEqualToString:@"/v2/ros/login_mobile_ios"]) {
         cfg->_authPath = [kDefaultAuthPath copy];
+        needsResave = YES;
+    }
+    if (cfg.timeoutSeconds < 15.0) {
+        cfg->_timeoutSeconds = 15.0;
         needsResave = YES;
     }
     if (needsResave) {
