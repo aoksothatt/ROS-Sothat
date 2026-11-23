@@ -14,13 +14,14 @@ import { useAuthStore } from '@/stores/auth';
 import { authService } from '@/services/auth';
 import { ApiError } from '@/services/api';
 
-// Viewport sizes specified in Phase P03.1
+// Viewport sizes specified in ROS-Sothat Requirements
 const VIEWPORTS = [
-  { name: 'Desktop Ultra-Wide', width: 1920, height: 1080, isMobile: false },
-  { name: 'Desktop Laptop', width: 1440, height: 900, isMobile: false },
+  { name: 'Desktop Full HD', width: 1920, height: 1080, isMobile: false },
+  { name: 'Standard Laptop', width: 1366, height: 768, isMobile: false },
   { name: 'Tablet Portrait', width: 768, height: 1024, isMobile: true },
-  { name: 'Mobile Modern (iPhone 12/13/14)', width: 390, height: 844, isMobile: true },
-  { name: 'Mobile Legacy (iPhone SE / 8)', width: 375, height: 667, isMobile: true }
+  { name: 'Mobile Large Pro Max (430x932)', width: 430, height: 932, isMobile: true },
+  { name: 'Mobile Standard (390x844)', width: 390, height: 844, isMobile: true },
+  { name: 'Mobile Compact (375x812)', width: 375, height: 812, isMobile: true }
 ];
 
 function setViewport(width: number, height: number) {
@@ -45,6 +46,11 @@ describe('Browser Viewports & Functional Workflows (P03.1)', () => {
         { path: '/', name: 'home', component: HomePage },
         { path: '/register', name: 'register', component: RegisterPage },
         { path: '/login', name: 'login', component: LoginPage },
+        { path: '/download', name: 'download', component: { template: '<div>Download</div>' } },
+        { path: '/guide', name: 'installation-guide', component: { template: '<div>Guide</div>' } },
+        { path: '/news', name: 'news', component: { template: '<div>News</div>' } },
+        { path: '/support', name: 'support', component: { template: '<div>Support</div>' } },
+        { path: '/account', name: 'account', component: { template: '<div>Account</div>' } },
         { path: '/dashboard', name: 'dashboard', component: DashboardPage, meta: { requiresAuth: true } },
         { path: '/404', name: 'not-found', component: NotFoundPage }
       ]
@@ -52,9 +58,9 @@ describe('Browser Viewports & Functional Workflows (P03.1)', () => {
   });
 
   // -------------------------------------------------------------
-  // 1. Viewport Responsiveness across all 5 required dimensions
+  // 1. Viewport Responsiveness across all 6 required dimensions
   // -------------------------------------------------------------
-  describe('Viewport Responsiveness (1920x1080 down to 375x667)', () => {
+  describe('Viewport Responsiveness across 6 Required Dimensions (1920x1080 down to 375x812)', () => {
     VIEWPORTS.forEach((vp) => {
       it(`renders navigation correctly at ${vp.name} (${vp.width}x${vp.height})`, async () => {
         setViewport(vp.width, vp.height);
@@ -78,7 +84,7 @@ describe('Browser Viewports & Functional Workflows (P03.1)', () => {
         }
       });
 
-      it(`renders Landing Page hero and stats at ${vp.name} (${vp.width}x${vp.height})`, async () => {
+      it(`renders Landing Page hero, download CTA, and stats at ${vp.name} (${vp.width}x${vp.height})`, async () => {
         setViewport(vp.width, vp.height);
         const wrapper = mount(HomePage, {
           global: {
@@ -89,6 +95,7 @@ describe('Browser Viewports & Functional Workflows (P03.1)', () => {
         expect(wrapper.find('.hero-title').text()).toContain('THE ISLAND IS WAITING');
         expect(wrapper.find('.hero-stats-row').text()).toContain('10–20');
         expect(wrapper.find('.hero-stats-row').text()).toContain('Invited Friends');
+        expect(wrapper.find('.download-highlight-btn').text()).toContain('Download iOS Launcher');
       });
     });
   });

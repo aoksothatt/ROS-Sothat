@@ -79,18 +79,21 @@ const ecosystemFeatures = [
         </p>
 
         <div class="hero-actions fade-in">
+          <RouterLink to="/download" class="btn btn-primary hero-btn download-highlight-btn">
+            <span class="btn-icon">&#128229;</span> Download iOS Launcher
+          </RouterLink>
           <template v-if="authStore.isAuthenticated">
-            <RouterLink to="/dashboard" class="btn btn-primary hero-btn">
+            <RouterLink to="/dashboard" class="btn btn-secondary hero-btn">
               Open Player Dashboard
             </RouterLink>
           </template>
           <template v-else>
-            <RouterLink to="/register" class="btn btn-primary hero-btn">
+            <RouterLink to="/register" class="btn btn-secondary hero-btn">
               Join The Community
             </RouterLink>
-            <a href="#about" class="btn btn-secondary hero-btn">
-              Explore ROS Sothat
-            </a>
+            <RouterLink to="/guide" class="btn btn-outline hero-btn">
+              Installation Guide
+            </RouterLink>
           </template>
         </div>
 
@@ -210,21 +213,47 @@ const ecosystemFeatures = [
     <!-- Download Section -->
     <section id="download" class="section download-section">
       <div class="container">
-        <div class="card download-card">
-          <span class="badge badge-dev">DISTRIBUTION PREPARATION</span>
-          <h2 class="download-title">GAME CLIENT DISTRIBUTION</h2>
+        <div class="card download-card card-glow">
+          <div class="download-badge-row">
+            <span class="badge badge-gold">OFFICIAL LAUNCHER PORTAL</span>
+            <span class="badge badge-beta">v1.0.0-beta.1</span>
+          </div>
+          <h2 class="download-title">NATIVE IOS LAUNCHER & GAME DISTRIBUTION</h2>
           <p class="download-text">
-            Game distribution for invited friends is currently in preparation. Our Ad Hoc distribution research verifies that the original iOS client can be provisioned directly to registered devices via an Apple installation manifest.
+            Experience ROS-Sothat through our high-performance native iOS companion launcher. Designed with an ultra-responsive dark tactical interface, cryptographic package integrity verification, and one-tap server synchronization.
           </p>
+
+          <div class="launcher-highlights-grid">
+            <div class="highlight-box">
+              <span class="hl-icon">📱</span>
+              <h4>Native SwiftUI</h4>
+              <p>Built exclusively for iOS 15.0+ and iPadOS with fluid 120Hz ProMotion support.</p>
+            </div>
+            <div class="highlight-box">
+              <span class="hl-icon">🛡️</span>
+              <h4>SHA-256 Integrity</h4>
+              <p>Cryptographic verification guarantees zero file tampering or malware injection.</p>
+            </div>
+            <div class="highlight-box">
+              <span class="hl-icon">⚙️</span>
+              <h4>Ad Hoc & Sideloading</h4>
+              <p>Install easily using AltStore, Sideloadly, or Xcode without jailbreak.</p>
+            </div>
+          </div>
+
           <div class="download-notice">
             <span class="notice-icon">&#9888;</span>
             <div class="notice-body">
-              <strong>Notice:</strong> The original game IPA is not directly downloadable via public HTTP links. Once your email is registered and your device is enrolled in the private Ad Hoc profile, distribution handoff will become available through the ROS Sothat companion launcher.
+              <strong>Security Policy:</strong> In strict compliance with iOS sandboxing, the launcher does not silently install unsigned IPA packages. Follow our verified installation guide to sideload with AltStore or Sideloadly.
             </div>
           </div>
+
           <div class="download-cta">
-            <RouterLink to="/register" class="btn btn-primary">
-              Register To Receive Updates
+            <RouterLink to="/download" class="btn btn-primary btn-large">
+              Go To Download Portal ➔
+            </RouterLink>
+            <RouterLink to="/guide" class="btn btn-secondary btn-large">
+              View Installation Guide ➔
             </RouterLink>
           </div>
         </div>
@@ -488,6 +517,87 @@ const ecosystemFeatures = [
 
 .notice-icon {
   font-size: 1.25rem;
+  color: var(--accent-gold);
+}
+
+.download-badge-row {
+  display: flex;
+  gap: 0.6rem;
+  margin-bottom: 0.5rem;
+}
+
+.badge-gold {
+  background-color: rgba(215, 168, 75, 0.15);
+  color: var(--accent-gold);
+  border: 1px solid rgba(215, 168, 75, 0.4);
+}
+
+.badge-beta {
+  background-color: rgba(52, 211, 153, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(52, 211, 153, 0.4);
+}
+
+.card-glow {
+  box-shadow: 0 0 35px rgba(215, 168, 75, 0.08);
+}
+
+.launcher-highlights-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem;
+  margin: 1.5rem 0;
+  width: 100%;
+}
+
+.highlight-box {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  padding: 1.25rem;
+  border-radius: 6px;
+  text-align: left;
+}
+
+.hl-icon {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.highlight-box h4 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--accent-gold);
+  margin-bottom: 0.3rem;
+}
+
+.highlight-box p {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.download-cta {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 0.5rem;
+}
+
+.btn-large {
+  padding: 0.85rem 1.75rem;
+  font-size: 0.9rem;
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+.btn-outline:hover {
+  border-color: var(--accent-gold);
   color: var(--accent-gold);
 }
 

@@ -4,6 +4,11 @@ import { useAuthStore } from '@/stores/auth';
 import HomePage from '@/pages/HomePage.vue';
 import RegisterPage from '@/pages/RegisterPage.vue';
 import LoginPage from '@/pages/LoginPage.vue';
+import DownloadPage from '@/pages/DownloadPage.vue';
+import InstallationGuidePage from '@/pages/InstallationGuidePage.vue';
+import NewsPage from '@/pages/NewsPage.vue';
+import SupportPage from '@/pages/SupportPage.vue';
+import AccountPage from '@/pages/AccountPage.vue';
 
 // Player Dashboard Pages (Phase P04)
 import DashboardOverviewPage from '@/pages/dashboard/DashboardOverviewPage.vue';
@@ -32,17 +37,72 @@ const router = createRouter({
     {
       path: '/',
       name: 'home',
-      component: HomePage
+      component: HomePage,
+      meta: {
+        title: 'Tactical Private Server',
+        description: 'A private Rules of Survival Legacy community. Survive together, compete together, and build your own battlefield.'
+      }
     },
     {
       path: '/register',
       name: 'register',
-      component: RegisterPage
+      component: RegisterPage,
+      meta: {
+        title: 'Join Community'
+      }
     },
     {
       path: '/login',
       name: 'login',
-      component: LoginPage
+      component: LoginPage,
+      meta: {
+        title: 'Player Login'
+      }
+    },
+    {
+      path: '/download',
+      name: 'download',
+      component: DownloadPage,
+      meta: {
+        title: 'Download iOS Launcher',
+        description: 'Official download portal for ROS-Sothat native iOS launcher and client release packages.'
+      }
+    },
+    {
+      path: '/guide',
+      name: 'installation-guide',
+      component: InstallationGuidePage,
+      meta: {
+        title: 'iOS Installation Guide',
+        description: 'Step-by-step sideloading and Ad Hoc provisioning instructions for AltStore and Sideloadly.'
+      }
+    },
+    {
+      path: '/news',
+      name: 'news',
+      component: NewsPage,
+      meta: {
+        title: 'News & Announcements',
+        description: 'Latest development dispatches, engine research milestones, and community announcements.'
+      }
+    },
+    {
+      path: '/support',
+      name: 'support',
+      component: SupportPage,
+      meta: {
+        title: 'Community Support',
+        description: 'Frequently asked questions, setup troubleshooting, and direct assistance channels.'
+      }
+    },
+    {
+      path: '/account',
+      name: 'account',
+      component: AccountPage,
+      meta: {
+        title: 'Player Account Portal',
+        description: 'Manage operator profile, companion launcher linkage, and view combat telemetry.'
+      }
     },
     // Player Dashboard routes
     {
@@ -163,6 +223,22 @@ router.beforeEach(async (to, _from, next) => {
   }
 
   next();
+});
+
+router.afterEach((to) => {
+  const baseTitle = 'ROS Sothat';
+  if (to.meta && to.meta.title) {
+    document.title = `${to.meta.title} — ${baseTitle}`;
+  } else {
+    document.title = `${baseTitle} — Tactical Private Server`;
+  }
+
+  if (to.meta && to.meta.description) {
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) {
+      metaDesc.setAttribute('content', to.meta.description as string);
+    }
+  }
 });
 
 export default router;

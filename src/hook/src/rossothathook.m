@@ -26,12 +26,6 @@ __attribute__((visibility("default"))) void ros_set_ticket(void) {
 // Forward declarations for NetEase UniSDK interposition
 static void (*orig_ntLogin)(id, SEL) = NULL;
 
-@interface ROSSothatHookCoordinator : NSObject
-@property (nonatomic, strong) ROSSothatConfig *config;
-+ (instancetype)sharedCoordinator;
-- (void)handleNtLoginWithTarget:(id)target selector:(SEL)selector;
-@end
-
 @implementation ROSSothatHookCoordinator
 
 + (instancetype)sharedCoordinator {

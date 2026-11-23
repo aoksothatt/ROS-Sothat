@@ -57,6 +57,24 @@ export const useAuthStore = defineStore('auth', () => {
     sessionStorage.removeItem(STORAGE_KEY);
   }
 
+  /**
+   * Set mock authenticated session for development/testing without live backend.
+   */
+  function setMockAuthenticated(mockUser?: Partial<AccountProfile>): void {
+    token.value = 'mock_jwt_token_player_10001';
+    sessionStorage.setItem(STORAGE_KEY, token.value);
+    user.value = {
+      id: mockUser?.id ?? 10001,
+      username: mockUser?.username ?? 'GhostOperator',
+      email: mockUser?.email ?? 'operator@ros-sothat.island',
+      role: mockUser?.role ?? 'player',
+      is_banned: false,
+      created_at: new Date().toISOString(),
+      last_login: new Date().toISOString(),
+      has_character: true
+    };
+  }
+
   return {
     token,
     user,
@@ -67,6 +85,7 @@ export const useAuthStore = defineStore('auth', () => {
     isAdmin,
     initSession,
     setSession,
+    setMockAuthenticated,
     logout
   };
 });

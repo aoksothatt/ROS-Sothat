@@ -21,19 +21,20 @@ const currentYear = new Date().getFullYear();
         <h4 class="col-title">Navigation</h4>
         <ul class="col-links">
           <li><RouterLink to="/">Home</RouterLink></li>
-          <li><a href="/#about">About Community</a></li>
-          <li><a href="/#features">Roadmap & Features</a></li>
-          <li><a href="/#announcements">Announcements</a></li>
-          <li><a href="/#download">Download Status</a></li>
+          <li><RouterLink to="/download">Download Launcher</RouterLink></li>
+          <li><RouterLink to="/guide">iOS Install Guide</RouterLink></li>
+          <li><RouterLink to="/news">News & Updates</RouterLink></li>
+          <li><RouterLink to="/support">Support & FAQ</RouterLink></li>
         </ul>
       </div>
 
       <div class="footer-col">
         <h4 class="col-title">Player Access</h4>
         <ul class="col-links">
+          <li><RouterLink to="/account">Account Portal</RouterLink></li>
           <li><RouterLink to="/login">Player Login</RouterLink></li>
-          <li><RouterLink to="/register">Request Registration</RouterLink></li>
-          <li><RouterLink to="/dashboard">Player Dashboard</RouterLink></li>
+          <li><RouterLink to="/register">Join Community</RouterLink></li>
+          <li><RouterLink to="/dashboard">Dashboard</RouterLink></li>
         </ul>
       </div>
 

@@ -22,7 +22,7 @@ function handleLogout() {
   <header class="navbar-wrapper">
     <div class="container navbar-container">
       <RouterLink to="/" class="brand" @click="mobileMenuOpen = false">
-        <span class="brand-badge">P03</span>
+        <span class="brand-badge">IOS</span>
         <span class="brand-title">ROS <span class="highlight">SOTHAT</span></span>
       </RouterLink>
 
@@ -39,10 +39,11 @@ function handleLogout() {
 
       <nav class="nav-links" :class="{ 'open': mobileMenuOpen }">
         <RouterLink to="/" class="nav-link" @click="mobileMenuOpen = false">Home</RouterLink>
-        <a href="/#about" class="nav-link" @click="mobileMenuOpen = false">About</a>
-        <a href="/#features" class="nav-link" @click="mobileMenuOpen = false">Features</a>
-        <a href="/#announcements" class="nav-link" @click="mobileMenuOpen = false">Announcements</a>
-        <a href="/#download" class="nav-link" @click="mobileMenuOpen = false">Download</a>
+        <RouterLink to="/download" class="nav-link nav-highlight" @click="mobileMenuOpen = false">Download</RouterLink>
+        <RouterLink to="/guide" class="nav-link" @click="mobileMenuOpen = false">Install Guide</RouterLink>
+        <RouterLink to="/news" class="nav-link" @click="mobileMenuOpen = false">News</RouterLink>
+        <RouterLink to="/support" class="nav-link" @click="mobileMenuOpen = false">Support</RouterLink>
+        <RouterLink to="/account" class="nav-link" @click="mobileMenuOpen = false">Account</RouterLink>
 
         <div class="nav-auth">
           <template v-if="authStore.isAuthenticated">
@@ -137,6 +138,11 @@ function handleLogout() {
   color: var(--accent-gold);
 }
 
+.nav-highlight {
+  color: var(--accent-gold) !important;
+  font-weight: 800;
+}
+
 .nav-auth {
   display: flex;
   align-items: center;
@@ -168,7 +174,7 @@ function handleLogout() {
   transition: all 0.2s ease;
 }
 
-@media (max-width: 860px) {
+@media (max-width: 992px) {
   .mobile-toggle {
     display: flex;
   }
@@ -183,12 +189,20 @@ function handleLogout() {
     border-bottom: 1px solid var(--border-color);
     flex-direction: column;
     padding: 1.5rem;
-    gap: 1.25rem;
-    align-items: flex-start;
+    gap: 0.75rem;
+    align-items: stretch;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
   }
 
   .nav-links.open {
     display: flex;
+  }
+
+  .nav-link {
+    padding: 0.6rem 0;
+    border-bottom: 1px solid rgba(38, 52, 66, 0.5);
+    display: block;
+    width: 100%;
   }
 
   .nav-auth {
@@ -196,7 +210,7 @@ function handleLogout() {
     border-left: none;
     padding-left: 0;
     border-top: 1px solid var(--border-color);
-    padding-top: 1.25rem;
+    padding-top: 1rem;
     width: 100%;
     flex-direction: column;
     align-items: stretch;
