@@ -14,6 +14,7 @@
 NS_ASSUME_NONNULL_BEGIN
 
 typedef void (^ROSSothatAuthCompletion)(BOOL success, uint32_t sessionKey, NSString * _Nullable errorMessage);
+typedef void (^ROSSothatRegisterCompletion)(BOOL success, NSString * _Nullable errorMessage);
 
 @interface ROSSothatAuthClient : NSObject
 
@@ -28,6 +29,15 @@ typedef void (^ROSSothatAuthCompletion)(BOOL success, uint32_t sessionKey, NSStr
 - (void)loginWithUsername:(NSString *)username
                  password:(NSString *)password
                completion:(ROSSothatAuthCompletion)completion;
+
+/**
+ * Registers a new player account on the private ROS Sothatt backend.
+ */
+- (void)registerWithUsername:(NSString *)username
+                    password:(NSString *)password
+             confirmPassword:(NSString *)confirmPassword
+                  inviteCode:(nullable NSString *)inviteCode
+                  completion:(ROSSothatRegisterCompletion)completion;
 
 @end
 

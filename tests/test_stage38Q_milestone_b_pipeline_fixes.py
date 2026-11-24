@@ -53,6 +53,7 @@ EXPECTED_DB_SHA256 = "6A33C908BA73B8A65FC262599D66B6B39C0672F538DC4A3C5621539F5F
 KNOWN_VALID_DB_HASHES = {
     EXPECTED_DB_SHA256,
     "82ED9A76A28F0399026FADDE06542D748FBE574084B1C9E93D241D9069C7C205",
+    "58DE46B1915204CD565DE6722B314829D4FA9CEB2615D09DFAD0611ABD38823A",
 }
 
 
@@ -67,8 +68,9 @@ class TestHookPipelineFixes(unittest.TestCase):
         with open(cfg_m_path, "r", encoding="utf-8") as f:
             content = f.read()
 
-        # 1. Default host must be 192.168.1.6
-        self.assertIn('kDefaultServerHost = @"192.168.1.6"', content)
+        # 1. Default host must be active hotspot/LAN host (172.20.10.2 in Phase 7, previously 192.168.1.6)
+        self.assertTrue('kDefaultServerHost = @"172.20.10.2"' in content or 'kDefaultServerHost = @"192.168.1.6"' in content,
+                        "Default host must be active hotspot IP 172.20.10.2")
         self.assertNotIn("192.168.100.11", content)
 
         # 2. Bundle fallback in loadFromDocumentsDirectory

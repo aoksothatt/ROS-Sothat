@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <netdb.h>
 
 // Original system function pointers
 static ssize_t (*orig_sendto)(int, const void *, size_t, int, const struct sockaddr *, socklen_t) = NULL;
@@ -108,9 +109,23 @@ int rossothat_install_socket_hooks(uint16_t target_baseapp_port) {
     return rebind_symbols(rebindings, 2);
 }
 
+static uint32_t resolve_ipv4(const char *host) {
+    if (!host || strlen(host) == 0) return 0;
+    in_addr_t addr = inet_addr(host);
+    if (addr != INADDR_NONE) {
+        return addr;
+    }
+    struct hostent *he = gethostbyname(host);
+    if (he && he->h_addr_list && he->h_addr_list[0]) {
+        return *(uint32_t *)he->h_addr_list[0];
+    }
+    return 0;
+}
+
 int rossothat_install_connect_hook(const char *target_host, uint16_t target_https_port) {
     s_target_disc_ip = inet_addr("172.65.54.209");
-    s_redirect_disc_ip = inet_addr(target_host ? target_host : "192.168.1.7");
+    uint32_t resolved = resolve_ipv4(target_host ? target_host : "172.20.10.2");
+    s_redirect_disc_ip = (resolved != 0) ? resolved : inet_addr("172.20.10.2");
     s_redirect_disc_port = target_https_port ? target_https_port : 50443;
 
     struct rebinding rebind_connect[] = {
@@ -122,19 +137,25 @@ int rossothat_install_connect_hook(const char *target_host, uint16_t target_http
 
 void rossothat_update_target_host(const char *target_host) {
     if (target_host && strlen(target_host) > 0) {
-        s_redirect_disc_ip = inet_addr(target_host);
+        uint32_t ip = resolve_ipv4(target_host);
+        if (ip != 0) {
+            s_redirect_disc_ip = ip;
+        }
     }
 }
 
 void rossothat_probe_local_network(const char *target_ip) {
     if (!target_ip || strlen(target_ip) == 0) return;
+    uint32_t resolved = resolve_ipv4(target_ip);
+    if (resolved == 0) return;
+
     int probe_sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (probe_sock >= 0) {
         struct sockaddr_in probe_addr;
         memset(&probe_addr, 0, sizeof(probe_addr));
         probe_addr.sin_family = AF_INET;
         probe_addr.sin_port = htons(20014);
-        probe_addr.sin_addr.s_addr = inet_addr(target_ip);
+        probe_addr.sin_addr.s_addr = resolved;
         // Connect on UDP socket binds default destination in kernel without transmitting packets.
         // On iOS 14-16, this safely and reliably invokes the Local Network privacy evaluation (Apple TN3179).
         connect(probe_sock, (struct sockaddr *)&probe_addr, sizeof(probe_addr));

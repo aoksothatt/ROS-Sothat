@@ -11,6 +11,7 @@
 #import "logging_manager.h"
 #import "SothattLoginVC.h"
 #import "session_manager.h"
+#import "discovery_client.h"
 #import <objc/runtime.h>
 #import <UIKit/UIKit.h>
 
@@ -135,7 +136,15 @@ void rossothat_hook_initialize(void) {
     // 3. Proactively trigger Local Network privacy evaluation on target LAN host (Apple TN3179)
     rossothat_probe_local_network([config.serverHost UTF8String]);
 
-    // 4. Swizzle NetEase UniSDK NtSdkBase::ntLogin
+    // 4. Proactively run multi-tier automatic server discovery
+    [ROSSothatDiscoveryClient discoverServerWithCurrentConfig:config completion:^(ROSSothatConfig *discovered, NSString *desc) {
+        if (discovered) {
+            [[ROSSothatHookCoordinator sharedCoordinator] updateConfig:discovered];
+            [ROSSothatLogger logInfo:@"Dynamic discovery settled server host: %@", discovered.serverHost];
+        }
+    }];
+
+    // 5. Swizzle NetEase UniSDK NtSdkBase::ntLogin
     Class ntSdkClass = objc_getClass("NtSdkBase");
     if (ntSdkClass) {
         SEL loginSel = sel_registerName("ntLogin");

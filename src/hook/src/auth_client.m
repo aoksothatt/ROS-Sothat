@@ -129,4 +129,59 @@ __attribute__((unused)) static const unsigned char kLoginAppPublicKeyPKCS1[140] 
     }];
 }
 
+- (void)registerWithUsername:(NSString *)username
+                    password:(NSString *)password
+             confirmPassword:(NSString *)confirmPassword
+                  inviteCode:(nullable NSString *)inviteCode
+                  completion:(ROSSothatRegisterCompletion)completion {
+    if (!username || [username length] == 0 || !password || [password length] == 0) {
+        if (completion) completion(NO, @"Username and password must not be empty.");
+        return;
+    }
+
+    if (confirmPassword && ![password isEqualToString:confirmPassword]) {
+        if (completion) completion(NO, @"Password and confirmation do not match.");
+        return;
+    }
+
+    NSMutableDictionary *body = [NSMutableDictionary dictionaryWithDictionary:@{
+        @"username": username,
+        @"password": password,
+        @"confirm_password": confirmPassword ?: password
+    }];
+    if (inviteCode && [inviteCode length] > 0) {
+        body[@"invite_code"] = inviteCode;
+    }
+
+    NSString *scheme = self.config.tlsEnabled ? @"https" : @"http";
+    NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"%@://%@:%ld/v2/ros/register",
+                                       scheme, self.config.serverHost, (long)self.config.authPort]];
+    [ROSSothatLogger logInfo:@"[AuthClient] Dispatching registration request for user '%@' to: %@",
+     username, [url absoluteString]];
+
+    [[ROSSothatNetworkClient sharedClient] postJSON:body toURL:url timeout:self.config.timeoutSeconds completion:^(NSData *data, NSInteger statusCode, NSError *error) {
+        if (error) {
+            [ROSSothatLogger logError:@"[AuthClient] Registration network error: %@", [error localizedDescription]];
+            NSString *msg = [NSString stringWithFormat:@"Cannot reach registration server at %@:%ld (code %ld)",
+                             self.config.serverHost, (long)self.config.authPort, (long)error.code];
+            if (completion) completion(NO, msg);
+            return;
+        }
+
+        NSError *jsonErr = nil;
+        NSDictionary *resp = [NSJSONSerialization JSONObjectWithData:data ?: [NSData data] options:0 error:&jsonErr];
+        if (jsonErr || ![resp isKindOfClass:[NSDictionary class]]) {
+            if (completion) completion(NO, [NSString stringWithFormat:@"Server error (HTTP %ld).", (long)statusCode]);
+            return;
+        }
+
+        BOOL success = [resp[@"success"] boolValue];
+        NSString *message = resp[@"message"] ?: (success ? @"Registration successful." : @"Registration failed.");
+        [ROSSothatLogger logInfo:@"[AuthClient] Registration result: success=%d, message='%@'", success, message];
+        if (completion) {
+            completion(success, message);
+        }
+    }];
+}
+
 @end

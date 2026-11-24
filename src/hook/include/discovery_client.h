@@ -30,6 +30,7 @@ NS_ASSUME_NONNULL_BEGIN
 @end
 
 typedef void (^ROSSothatDiscoveryCompletion)(NSArray<ROSSothatServerEntry *> * _Nullable servers, NSString * _Nullable trailer, NSError * _Nullable error);
+typedef void (^ROSSothatAutoDiscoveryCompletion)(ROSSothatConfig * _Nullable discoveredConfig, NSString * _Nullable statusDescription);
 
 @interface ROSSothatDiscoveryClient : NSObject
 
@@ -38,6 +39,16 @@ typedef void (^ROSSothatDiscoveryCompletion)(NSArray<ROSSothatServerEntry *> * _
 - (instancetype)initWithConfig:(ROSSothatConfig *)config;
 
 - (void)fetchServerListWithCompletion:(ROSSothatDiscoveryCompletion)completion;
+
+/**
+ * Multi-Tier Automatic Private Server Discovery:
+ * Tier 1: Hostname check ('ros-sothatt.local')
+ * Tier 2: UDP Broadcast & Unicast beacon query on port 50010
+ * Tier 3: Parallel HTTP subnet scan (172.20.10.x / 192.168.x / 10.x)
+ * Tier 4: Configured host fallback
+ */
++ (void)discoverServerWithCurrentConfig:(nullable ROSSothatConfig *)config
+                             completion:(ROSSothatAutoDiscoveryCompletion)completion;
 
 @end
 

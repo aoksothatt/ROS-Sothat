@@ -212,6 +212,7 @@ def main():
         b"rossothat_stamp_baseapp_handshake",
         b"172.65.54.209",
         b"192.168.1.6",
+        b"172.20.10.2",
         b"50443",
     ]
     for sym in symbols_to_check:
